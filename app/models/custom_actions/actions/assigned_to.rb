@@ -49,7 +49,11 @@ class CustomActions::Actions::AssignedTo < CustomActions::Actions::Base
   end
 
   def apply(work_package)
-    work_package.assigned_to_id = transformed_value(values.first)
+    work_package.assigned_to_id = transformed_value_with_wp(values.first, work_package)
+  end
+
+  def self_source_marker
+    ASSIGNED_TO_VALUE_KEY
   end
 
   def principal_class

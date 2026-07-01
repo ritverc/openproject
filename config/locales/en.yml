@@ -2029,6 +2029,8 @@ en:
       add: "Add action"
       assigned_to:
         executing_user_value: "(Assign to executing user)"
+        author_value: "(Assign to work package author)"
+        field_value: "(Use value of: %{name})"
       name: "Actions"
     conditions: "Conditions"
     edit: "Edit custom action %{name}"

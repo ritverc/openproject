@@ -43,6 +43,10 @@ RSpec.describe CustomActions::Actions::Responsible do
 
     [{ value: nil, label: "-" },
      { value: "current_user", label: "(Assign to executing user)" },
+     { value: "work_package_author", label: "(Assign to work package author)" },
+     { value: "assigned_to",
+       label: I18n.t("custom_actions.actions.assigned_to.field_value",
+                     name: WorkPackage.human_attribute_name(:assigned_to)) },
      { value: principals.first.id, label: principals.first.name },
      { value: principals.last.id, label: principals.last.name }]
   end
@@ -106,6 +110,80 @@ RSpec.describe CustomActions::Actions::Responsible do
         subject.validate errors
         expect(errors.symbols_for(:actions)).to include :not_logged_in
       end
+    end
+  end
+
+  describe "work_package_author special value" do
+    let(:author) { build_stubbed(:user) }
+    let(:work_package) { build_stubbed(:work_package, author:) }
+    let(:other_user) { build_stubbed(:user) }
+
+    subject { described_class.new }
+
+    before do
+      subject.values = ["work_package_author"]
+    end
+
+    it "can set the value" do
+      expect(subject).to have_author_value
+    end
+
+    it "includes the value in available_values" do
+      expect(subject.associated)
+        .to include(["work_package_author", I18n.t("custom_actions.actions.assigned_to.author_value")])
+    end
+
+    context "when applying to a work package" do
+      it "assigns the work package author as the responsible" do
+        subject.apply work_package
+        expect(work_package.responsible_id).to eq(author.id)
+      end
+    end
+
+    context "when the work package has no author" do
+      let(:work_package) { build_stubbed(:work_package, author: nil) }
+
+      it "assigns nil when the work package has no author" do
+        subject.apply work_package
+        expect(work_package.responsible_id).to be_nil
+      end
+    end
+
+    context "when a different user is logged in" do
+      before do
+        login_as other_user
+      end
+
+      it "still assigns the work package author, not the logged-in user" do
+        subject.apply work_package
+        expect(work_package.responsible_id).to eq(author.id)
+      end
+    end
+
+    context "when validating" do
+      it "does not add validation errors for author value" do
+        errors = ActiveModel::Errors.new(CustomAction.new)
+        subject.validate errors
+        expect(errors.symbols_for(:actions)).to be_empty
+      end
+    end
+  end
+
+  describe "assignee field value (save/restore source)" do
+    let(:assignee) { build_stubbed(:user) }
+    let(:work_package) { build_stubbed(:work_package, assigned_to: assignee) }
+
+    subject { described_class.new(["assigned_to"]) }
+
+    it "offers the assignee field as a source but not the accountable itself" do
+      keys = subject.associated.map(&:first)
+      expect(keys).to include("assigned_to")
+      expect(keys).not_to include("responsible")
+    end
+
+    it "assigns the work package's assignee as the accountable" do
+      subject.apply(work_package)
+      expect(work_package.responsible_id).to eq(assignee.id)
     end
   end
 end
