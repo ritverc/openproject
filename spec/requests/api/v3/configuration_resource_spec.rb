@@ -67,6 +67,24 @@ RSpec.describe "API v3 Configuration resource" do
               .at_path("_embedded/userPreferences/_type")
     end
 
+    context "with inline editing enabled (default)",
+            with_settings: { work_package_inline_editing_enabled: true } do
+      it "exposes workPackageInlineEditingEnabled as true" do
+        expect(subject.body)
+          .to be_json_eql(true.to_json)
+                .at_path("workPackageInlineEditingEnabled")
+      end
+    end
+
+    context "with inline editing disabled",
+            with_settings: { work_package_inline_editing_enabled: false } do
+      it "exposes workPackageInlineEditingEnabled as false" do
+        expect(subject.body)
+          .to be_json_eql(false.to_json)
+                .at_path("workPackageInlineEditingEnabled")
+      end
+    end
+
     it "does not embed the preferences" do
       expect(subject.body)
         .not_to have_json_path("_embedded/user_preferences")

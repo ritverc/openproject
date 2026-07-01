@@ -61,4 +61,5 @@ export class ConfigurationResource extends HalResource {
   public activeFeatureFlags:string[];
   public availableFeatures:string[];
   public triallingFeatures:string[];
+  public workPackageInlineEditingEnabled:boolean;
 }

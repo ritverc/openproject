@@ -5533,6 +5533,7 @@ en:
     In <b>work-based</b> mode, % Complete can be freely set to any value.
     If you optionally enter a value for Work, Remaining work will automatically be derived.
     In <b>status-based</b> mode, each status has a % Complete value associated with it. Changing status will change % Complete.
+  setting_work_package_inline_editing_enabled: "Enable inline editing of work packages in table views"
   setting_work_package_properties: "Work package properties"
   setting_work_package_startdate_is_adddate: "Use current date as start date for new work packages"
   setting_work_packages_projects_export_limit: "Work packages / Projects export limit"
