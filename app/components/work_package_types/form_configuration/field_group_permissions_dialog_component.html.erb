@@ -1,0 +1,97 @@
+<%#-- copyright
+OpenProject is an open source project management software.
+Copyright (C) the OpenProject GmbH
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License version 3.
+
+OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
+Copyright (C) 2006-2013 Jean-Philippe Lang
+Copyright (C) 2010-2013 the ChiliProject Team
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+See COPYRIGHT and LICENSE files for more details.
+
+++#%>
+
+<% form_html = capture do %>
+  <%= form_tag(update_path, method: :patch, data: { turbo: true }) do %>
+    <%= hidden_field_tag :field_group, field_group_key %>
+
+    <%= render(Primer::Alpha::Dialog::Body.new) do %>
+      <p><%= t("field_group_permissions.matrix_caption") %></p>
+
+      <div class="generic-table--container">
+        <div class="generic-table--results-container">
+          <table class="generic-table">
+            <thead>
+              <tr>
+                <th rowspan="2"><div class="generic-table--sort-header-outer"><%= t(:label_status) %></div></th>
+                <% roles.each_value do |role_label| %>
+                  <th colspan="2" class="-center"><div class="generic-table--sort-header-outer"><%= role_label %></div></th>
+                <% end %>
+              </tr>
+              <tr>
+                <% roles.each_key do |_role| %>
+                  <th class="-center"><div class="generic-table--sort-header-outer"><%= t("field_group_permissions.hide") %></div></th>
+                  <th class="-center"><div class="generic-table--sort-header-outer"><%= t("field_group_permissions.read_only") %></div></th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <% statuses.each do |status| %>
+                <tr>
+                  <th scope="row"><%= status.name %></th>
+                  <% roles.each do |role, role_label| %>
+                    <td class="-center">
+                      <%= check_box_tag "hidden[#{status.id}][#{role}]", "1", hidden?(status, role),
+                                        id: "hidden_#{status.id}_#{role}",
+                                        "aria-label": "#{role_label} – #{status.name} – #{t('field_group_permissions.hide')}" %>
+                    </td>
+                    <td class="-center">
+                      <%= check_box_tag "read_only[#{status.id}][#{role}]", "1", read_only?(status, role),
+                                        id: "read_only_#{status.id}_#{role}",
+                                        "aria-label": "#{role_label} – #{status.name} – #{t('field_group_permissions.read_only')}" %>
+                    </td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+
+    <%= render(Primer::Alpha::Dialog::Footer.new(show_divider: true)) do %>
+      <%= render(Primer::Beta::Button.new(data: { "close-dialog-id": dialog_id })) { t(:button_cancel) } %>
+      <%= render(Primer::Beta::Button.new(scheme: :primary, type: :submit)) { t(:button_save) } %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%=
+  render(
+    Primer::Alpha::Dialog.new(
+      id: dialog_id,
+      title: dialog_title,
+      test_selector: dialog_id,
+      size: :xlarge
+    )
+  ) do |dialog|
+    dialog.with_header(variant: :large)
+    form_html
+  end
+%>

@@ -1560,6 +1560,13 @@ en:
     index:
       no_results_content_text: Add a new wiki page
 
+  field_group_permissions:
+    matrix_caption: "Rows are statuses, columns are the work package roles of the current user. \"Hide\" removes the group for that role, \"Read-only\" keeps it visible but not editable."
+    dialog_title: "Field group access: %{name}"
+    menu_action: "Field group access"
+    hide: "Hide"
+    read_only: "Read-only"
+
   workflows:
     copies:
       form:
@@ -4235,6 +4242,7 @@ en:
   label_feeds_access_key: "RSS access key"
   label_feeds_access_key_created_on: "RSS access key created %{value} ago"
   label_feeds_access_key_type: "RSS"
+  label_field_group: "Field group"
   label_file_plural: "Files"
   label_filter: "Filters"
   label_filter_add: "Add filter"

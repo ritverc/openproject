@@ -62,6 +62,18 @@
           end
 
           with_item_group(menu) do
+            menu.with_item(
+              label: t("field_group_permissions.menu_action"),
+              test_selector: "type-form-configuration-group-permissions-#{@group[:key]}",
+              tag: :a,
+              href: field_group_permissions_path,
+              content_arguments: { data: { controller: "async-dialog" } }
+            ) do |item|
+              item.with_leading_visual_icon(icon: :lock)
+            end
+          end
+
+          with_item_group(menu) do
             unless first?
               move_action(menu:, href: move_path(:highest), label: t("label_agenda_item_move_to_top"), icon: "move-to-top")
               move_action(menu:, href: move_path(:higher), label: t("label_agenda_item_move_up"), icon: "chevron-up")

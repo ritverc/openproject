@@ -104,6 +104,10 @@ module WorkPackageTypes
         type_form_configuration_groups_path(@type)
       end
 
+      def field_group_permissions_path
+        edit_field_group_permission_path(@type, field_group: @group[:key])
+      end
+
       def move_action(menu:, href:, label:, icon:)
         menu.with_item(
           label:,

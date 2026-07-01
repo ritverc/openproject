@@ -336,13 +336,27 @@ module API
                                          }
 
           def attribute_groups
-            (represented.type&.attribute_groups || []).map do |group|
+            hidden = hidden_field_group_keys
+
+            (represented.type&.attribute_groups || []).filter_map do |group|
+              next if hidden.include?(group.key.to_s)
+
               if group.is_a?(Type::QueryGroup)
                 form_config_query_representation(group)
               else
                 form_config_attribute_representation(group)
               end
             end
+          end
+
+          # Field groups hidden by the field group access matrix for the current
+          # user and the concrete work package's status. Only applies to schemas
+          # bound to a persisted work package (not to creation forms).
+          def hidden_field_group_keys
+            work_package = represented.try(:work_package)
+            return [] unless work_package&.status_id
+
+            FieldGroupPermission.hidden_group_keys(work_package, current_user)
           end
 
           ##

@@ -950,6 +950,8 @@ Rails.application.routes.draw do
     resource :summary, only: %i[show]
   end
 
+  resources :field_group_permissions, only: %i[edit update], param: :type_id
+
   namespace :work_packages do
     get "menu" => "menus#show"
 
