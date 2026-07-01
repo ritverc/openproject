@@ -265,6 +265,24 @@ RSpec.describe API::V3::Configuration::ConfigurationRepresenter do
         end
       end
     end
+
+    describe "workPackageInlineEditingEnabled" do
+      context "when enabled (default)", with_settings: { work_package_inline_editing_enabled: true } do
+        it "is true" do
+          expect(subject)
+            .to be_json_eql(true.to_json)
+            .at_path("workPackageInlineEditingEnabled")
+        end
+      end
+
+      context "when disabled", with_settings: { work_package_inline_editing_enabled: false } do
+        it "is false" do
+          expect(subject)
+            .to be_json_eql(false.to_json)
+            .at_path("workPackageInlineEditingEnabled")
+        end
+      end
+    end
   end
 
   describe "_embedded" do

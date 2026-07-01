@@ -159,6 +159,10 @@ export class ConfigurationService {
     return this.configuration.triallingFeatures;
   }
 
+  public get workPackageInlineEditingEnabled():boolean {
+    return this.configuration.workPackageInlineEditingEnabled;
+  }
+
   private async loadConfiguration():Promise<void> {
     this.configuration = await firstValueFrom(this.apiV3Service.configuration.get());
   }

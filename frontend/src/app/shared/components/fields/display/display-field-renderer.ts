@@ -15,6 +15,8 @@ import { SchemaResource } from 'core-app/features/hal/resources/schema-resource'
 import {
   HalResourceEditingService,
 } from 'core-app/shared/components/fields/edit/services/hal-resource-editing.service';
+import { ConfigurationService } from 'core-app/core/config/configuration.service';
+import isNewResource from 'core-app/features/hal/helpers/is-new-resource';
 
 export const editableClassName = '-editable';
 export const requiredClassName = '-required';
@@ -32,6 +34,8 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
   @LazyInject() halEditing:HalResourceEditingService;
 
   @LazyInject() I18n!:I18nService;
+
+  @LazyInject() configurationService:ConfigurationService;
 
   /** We cache the previously used fields to avoid reinitialization */
   private fieldCache:Record<string, DisplayField> = {};
@@ -83,7 +87,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     if (title && !span.getAttribute('title')) {
       span.setAttribute('title', title);
     }
-    span.setAttribute('aria-label', this.getAriaLabel(field, schema));
+    span.setAttribute('aria-label', this.getAriaLabel(field, schema, resource));
 
     return [field, span];
   }
@@ -135,12 +139,26 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
 
     const schema = this.schema(resource, change);
-    if (this.isAttributeEditable(schema, name)) {
+    const editable = !this.isTableInlineEditingDisabled(resource) && this.isAttributeEditable(schema, name);
+    if (editable) {
       span.classList.add(editableClassName);
       span.setAttribute('role', 'button');
     } else {
       span.classList.add(readOnlyClassName);
     }
+  }
+
+  /**
+   * Inline editing in work package table views can be turned off instance-wide
+   * via the `work_package_inline_editing_enabled` admin setting. When disabled,
+   * cells of persisted work packages are rendered read-only regardless of the
+   * user's permissions. New (unsaved) resources are exempt so that inline
+   * creation of work packages in the table keeps working.
+   */
+  private isTableInlineEditingDisabled(resource:T):boolean {
+    return this.container === 'table'
+      && !isNewResource(resource)
+      && !this.configurationService.workPackageInlineEditingEnabled;
   }
 
   private isAttributeEditable(schema:SchemaResource, fieldName:string):boolean {
@@ -153,7 +171,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     return schema.isAttributeEditable(fieldName) as boolean;
   }
 
-  private getAriaLabel(field:DisplayField, schema:SchemaResource):string {
+  private getAriaLabel(field:DisplayField, schema:SchemaResource, resource:T):string {
     let titleContent;
     const labelContent = this.getLabelContent(field);
 
@@ -171,7 +189,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    if (field.writable && !!schema.isAttributeEditable(field.name)) {
+    if (field.writable && !this.isTableInlineEditingDisabled(resource) && !!schema.isAttributeEditable(field.name)) {
       return this.I18n.t('js.inplace.button_edit', { attribute: `${field.displayName} ${titleContent}` });
     }
     return `${field.displayName} ${titleContent}`;

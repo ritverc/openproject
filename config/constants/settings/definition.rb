@@ -316,6 +316,9 @@ module Settings
       cross_project_work_package_relations: {
         default: true
       },
+      work_package_inline_editing_enabled: {
+        default: true
+      },
       csv_escape_formulas: {
         default: true,
         description: "Escapes cells with single quote in CSV exports that begin with a spreadsheet formula character (e.g., =,@)"
