@@ -947,6 +947,8 @@ Rails.application.routes.draw do
       end
     end
 
+  resources :field_group_permissions, only: %i[edit update], param: :type_id
+
     resources :departments,
               only: %i[index show edit update destroy] do
       member do

@@ -265,10 +265,41 @@ module WorkPackages
         attributes -= auto_generated_attribute_names
       end
 
-      attributes
+      attributes - non_writable_field_group_attributes
     end
 
     private
+
+    # Attributes belonging to field groups that the field group access matrix
+    # marks as hidden or read-only for the current user and work package status.
+    def non_writable_field_group_attributes
+      return [] unless model.is_a?(WorkPackage) && model.type_id && model.status_id
+
+      group_keys = FieldGroupPermission.non_writable_group_keys(model, user)
+      return [] if group_keys.empty?
+
+      restricted_group_members(group_keys).flat_map { |member| field_group_ar_names(member) }
+    end
+
+    # Form attribute names of the given (restricted) field groups.
+    def restricted_group_members(group_keys)
+      groups = model.type.attribute_groups.select do |group|
+        group.is_a?(Type::AttributeGroup) && group_keys.include?(group.key.to_s)
+      end
+
+      groups.flat_map { |group| group.active_members(model.project) }
+    end
+
+    # Maps a work package form attribute (schema property name) to the active
+    # record attribute names used in +writable_attributes+.
+    def field_group_ar_names(member)
+      return %w[start_date due_date] if member.to_s == "date"
+
+      name = ::API::Utilities::PropertyNameConverter
+             .to_ar_name(member, context: model, collapse_cf_name: false)
+             .to_s
+      [name, "#{name}_id"]
+    end
 
     def validate_after_soonest_start(date_attribute)
       return if model.schedule_manually?
