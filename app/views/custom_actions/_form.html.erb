@@ -80,6 +80,14 @@
                                             } %>
                 <% in { type: :user, custom_field_based: false } %>
                   <% selected = action.value_objects.map { |v| { id: v[:value], name: v[:label] } } %>
+                  <%
+                    # String-valued options are the special dynamic markers
+                    # (executing user, work package author, user custom field values).
+                    special_options = action.allowed_values
+                                            .select { |v| v[:value].is_a?(String) }
+                                            .map { |v| { id: v[:value], name: v[:label] } }
+                    default_option = { id: nil, name: I18n.t("placeholders.default") }
+                  %>
                   <%= angular_component_tag "opce-user-autocompleter",
                                             inputs: {
                                               multiple: action.multi_value?,
@@ -93,10 +101,7 @@
                                               filters: [
                                                 { name: "status", operator: "!", values: [Principal.statuses["locked"].to_s] }
                                               ],
-                                              additionalOptions: [
-                                                { id: nil, name: I18n.t("placeholders.default") },
-                                                { id: action.current_user_value_key, name: action.current_user_name }
-                                              ],
+                                              additionalOptions: [default_option] + special_options,
                                               searchKey: "any_name_attribute",
                                               labelForId: "custom_action_actions_#{action.key}",
                                               focusDirectly: false

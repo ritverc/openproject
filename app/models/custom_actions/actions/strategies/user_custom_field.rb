@@ -41,8 +41,7 @@ module CustomActions::Actions::Strategies::UserCustomField
   end
 
   # Implement the apply method explicitly, because the MeAssociated module would override the default
-  # implementation. This could have been solved by swapping the module includes, however then the
-  # transformed_value method would get an incorrect implementation.
+  # implementation.
   def apply(work_package)
     if work_package.respond_to?(custom_field.attribute_setter)
       set_custom_field_value(work_package)
@@ -58,18 +57,10 @@ module CustomActions::Actions::Strategies::UserCustomField
 
   def transformed_values(work_package)
     if single_value?
-      transformed_value values.first
+      transformed_value_with_wp(values.first, work_package)
     else
-      me_handled = values.map { transformed_value(it) }
-      me_handled & available_principal_ids_for(work_package)
-    end
-  end
-
-  def transformed_value(value)
-    if value == current_user_value_key
-      User.current.id if User.current.logged?
-    else
-      value
+      resolved = values.map { |value| transformed_value_with_wp(value, work_package) }
+      resolved & available_principal_ids_for(work_package)
     end
   end
 

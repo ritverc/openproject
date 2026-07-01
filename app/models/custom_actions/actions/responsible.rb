@@ -45,7 +45,11 @@ class CustomActions::Actions::Responsible < CustomActions::Actions::Base
   end
 
   def apply(work_package)
-    work_package.responsible_id = transformed_value(values.first)
+    work_package.responsible_id = transformed_value_with_wp(values.first, work_package)
+  end
+
+  def self_source_marker
+    RESPONSIBLE_VALUE_KEY
   end
 
   def required?

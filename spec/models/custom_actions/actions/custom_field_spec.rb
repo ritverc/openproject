@@ -441,7 +441,16 @@ RSpec.describe CustomActions::Actions::CustomField do
     context "for a user custom field" do
       let(:custom_field) { user_custom_field }
       let(:expected) do
-        values = [{ label: "(Assign to executing user)", value: "current_user" }]
+        values = [
+          { label: "(Assign to executing user)", value: "current_user" },
+          { label: "(Assign to work package author)", value: "work_package_author" },
+          { label: I18n.t("custom_actions.actions.assigned_to.field_value",
+                          name: WorkPackage.human_attribute_name(:assigned_to)),
+            value: "assigned_to" },
+          { label: I18n.t("custom_actions.actions.assigned_to.field_value",
+                          name: WorkPackage.human_attribute_name(:responsible)),
+            value: "responsible" }
+        ]
         values + users.map { |u| { value: u.id, label: u.name } }
       end
       let(:users) do

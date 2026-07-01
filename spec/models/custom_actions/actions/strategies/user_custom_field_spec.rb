@@ -118,6 +118,68 @@ module CustomActions
             expect(updated.send("custom_field_#{multi_user_cf.id}")).to eq([user])
           end
         end
+
+        # Unit-level (calls #apply directly) to stay independent of CustomAction
+        # persistence, which is unrelated to this strategy.
+        describe "user custom field value markers" do
+          it "offers other user custom fields but excludes its own field" do
+            keys = user_cf_action.associated.map(&:first)
+
+            expect(keys).to include("user_custom_field_#{multi_user_cf.id}")
+            expect(keys).not_to include("user_custom_field_#{user_cf.id}")
+          end
+
+          it "copies the value of another user custom field onto the field" do
+            single_user_work_package.update(custom_field_values: { multi_user_cf.id => user.id })
+            user_cf_action.values = "user_custom_field_#{multi_user_cf.id}"
+
+            user_cf_action.apply(single_user_work_package)
+
+            expect(single_user_work_package.send("custom_field_#{user_cf.id}")).to eq(user)
+          end
+
+          it "offers the work package assignee and accountable as sources" do
+            keys = user_cf_action.associated.map(&:first)
+
+            expect(keys).to include("assigned_to", "responsible")
+          end
+
+          it "copies the work package assignee onto the field" do
+            single_user_work_package.update(assigned_to: user)
+            user_cf_action.values = "assigned_to"
+
+            user_cf_action.apply(single_user_work_package)
+
+            expect(single_user_work_package.send("custom_field_#{user_cf.id}")).to eq(user)
+          end
+        end
+
+        # The core of the "save & restore a person on status change" workflow: a
+        # value source is always read from the *original* (pre-action) state, so
+        # the order in which actions are applied does not change the result.
+        describe "order independence (save & restore)" do
+          it "saves the original assignee even when another action changes the assignee first" do
+            single_user_work_package.update(assigned_to: users[0])
+            change_assignee = CustomActions::Actions::AssignedTo.new([users[1].id])
+            user_cf_action.values = "assigned_to"
+
+            change_assignee.apply(single_user_work_package)
+            user_cf_action.apply(single_user_work_package)
+
+            expect(single_user_work_package.send("custom_field_#{user_cf.id}")).to eq(users[0])
+          end
+
+          it "restores the assignee from the original field value even when the field changes first" do
+            single_user_work_package.update(custom_field_values: { user_cf.id => users[0].id })
+            change_cf = CustomActions::Actions::CustomField.for("custom_field_#{user_cf.id}").new([users[1].id])
+            restore_assignee = CustomActions::Actions::AssignedTo.new(["user_custom_field_#{user_cf.id}"])
+
+            change_cf.apply(single_user_work_package)
+            restore_assignee.apply(single_user_work_package)
+
+            expect(single_user_work_package.assigned_to_id).to eq(users[0].id)
+          end
+        end
       end
     end
   end
