@@ -6692,6 +6692,8 @@ en:
     matrix_caption: "Rows are statuses, columns are the work package roles of the current user. \"Hide\" removes the group for that role, \"Read-only\" keeps it visible but not editable."
     dialog_title: "Field group access: %{name}"
     menu_action: "Field group access"
+    header_meta_group: "Header (subject, type, status)"
+    header_meta_group_caption: "The work package header fields (subject, type, status) are not part of a regular attribute group, but their access can still be configured here."
     hide: "Hide"
     read_only: "Read-only"
 

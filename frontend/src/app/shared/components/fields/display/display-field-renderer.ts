@@ -17,6 +17,7 @@ import {
 } from 'core-app/shared/components/fields/edit/services/hal-resource-editing.service';
 import { ConfigurationService } from 'core-app/core/config/configuration.service';
 import isNewResource from 'core-app/features/hal/helpers/is-new-resource';
+import { isFieldReadonlyByMatrix } from 'core-app/shared/components/fields/field-group-restrictions';
 
 export const editableClassName = '-editable';
 export const requiredClassName = '-required';
@@ -139,7 +140,9 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
 
     const schema = this.schema(resource, change);
-    const editable = !this.isTableInlineEditingDisabled(resource) && this.isAttributeEditable(schema, name);
+    const editable = !this.isTableInlineEditingDisabled(resource)
+      && this.isAttributeEditable(schema, name)
+      && !isFieldReadonlyByMatrix(resource, name);
     if (editable) {
       span.classList.add(editableClassName);
       span.setAttribute('role', 'button');
@@ -189,7 +192,11 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    if (field.writable && !this.isTableInlineEditingDisabled(resource) && !!schema.isAttributeEditable(field.name)) {
+    const schemaEditable = !!schema.isAttributeEditable(field.name);
+    if (field.writable
+      && !this.isTableInlineEditingDisabled(resource)
+      && schemaEditable
+      && !isFieldReadonlyByMatrix(resource, field.name)) {
       return this.I18n.t('js.inplace.button_edit', { attribute: `${field.displayName} ${titleContent}` });
     }
     return `${field.displayName} ${titleContent}`;

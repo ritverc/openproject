@@ -58,6 +58,7 @@ import { IProjectStorage } from 'core-app/core/state/project-storages/project-st
 import idFromLink from 'core-app/features/hal/helpers/id-from-link';
 import isNewResource from 'core-app/features/hal/helpers/is-new-resource';
 import { isSemanticWorkPackageId } from 'core-app/shared/helpers/work-package-id-pattern';
+import { isFieldHiddenByMatrix } from 'core-app/shared/components/fields/field-group-restrictions';
 
 export interface FieldDescriptor {
   name:string;
@@ -341,6 +342,12 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     const descriptors:FieldDescriptor[] = [];
 
     fieldNames.forEach((fieldName:string) => {
+      // Field group access matrix may hide the attribute for the current user;
+      // dropping it here lets groups that become empty collapse via shouldHideGroup.
+      if (isFieldHiddenByMatrix(this.workPackage, fieldName)) {
+        return;
+      }
+
       if (fieldName === 'date') {
         descriptors.push(this.getDateField(change));
         return;

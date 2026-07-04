@@ -42,6 +42,13 @@ class FieldGroupPermission < ApplicationRecord
   # These are attributes of the work package itself, not project membership roles.
   ROLES = %w[author assignee responsible].freeze
 
+  # Reserved key of the virtual "header" meta group. The work package header
+  # fields (subject, type, status) do not belong to any regular attribute group,
+  # but can still be hidden / made read-only through the access matrix by
+  # configuring this meta group.
+  HEADER_GROUP_KEY = "header"
+  HEADER_GROUP_MEMBERS = %w[subject type status].freeze
+
   belongs_to :type, class_name: "::Type"
   belongs_to :status
 
@@ -114,5 +121,54 @@ class FieldGroupPermission < ApplicationRecord
   # package and user, i.e. groups that are hidden or read-only.
   def self.non_writable_group_keys(work_package, user)
     effective_for(work_package, user).filter_map { |key, rule| key if !rule[:visible] || rule[:read_only] }
+  end
+
+  # Attribute (form configuration) keys that must be hidden for the given work
+  # package and user, expanded from the hidden field groups (incl. the header
+  # meta group). Matches the schema property names used on the frontend.
+  def self.hidden_attribute_keys(work_package, user)
+    expand_members(work_package, hidden_group_keys(work_package, user))
+  end
+
+  # Attribute (form configuration) keys that are visible but read-only for the
+  # given work package and user, expanded from the read-only field groups (incl.
+  # the header meta group).
+  def self.read_only_attribute_keys(work_package, user)
+    expand_members(work_package, read_only_group_keys(work_package, user))
+  end
+
+  # Expands field group keys into their member attribute keys. The +header+ meta
+  # group resolves to its synthetic members, every other key to the active
+  # members of the matching attribute group of the work package's type.
+  def self.expand_members(work_package, group_keys)
+    keys = Array(group_keys).map(&:to_s)
+    return [] if keys.empty?
+
+    members = keys.delete(HEADER_GROUP_KEY) ? HEADER_GROUP_MEMBERS.dup : []
+    members.concat(attribute_group_members(work_package, keys))
+    members.uniq
+  end
+
+  # Active members of the work package type's attribute groups matching +keys+.
+  def self.attribute_group_members(work_package, keys)
+    return [] if keys.empty?
+
+    work_package.type.attribute_groups
+                .select { |group| group.is_a?(Type::AttributeGroup) && keys.include?(group.key.to_s) }
+                .flat_map { |group| group.active_members(work_package.project) }
+  end
+  private_class_method :attribute_group_members
+
+  # Lightweight stand-in for the +header+ meta group so the admin matrix dialog,
+  # which expects an object responding to +key+ and +translated_key+, can render
+  # it like a regular attribute group.
+  HeaderMetaGroup = Struct.new(:key) do
+    def translated_key
+      I18n.t("field_group_permissions.header_meta_group")
+    end
+  end
+
+  def self.header_meta_group
+    HeaderMetaGroup.new(HEADER_GROUP_KEY)
   end
 end

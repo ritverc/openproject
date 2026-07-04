@@ -499,6 +499,18 @@ module API
                    project&.available_custom_fields_for_type(type_id)&.any? || false
                  end
 
+        # Field group access matrix restrictions for the current user and this
+        # work package's status. Consumed by the frontend to hide / disable
+        # fields already on first render (see FieldGroupPermission). Omitted when
+        # nothing is restricted. User-specific, hence uncacheable.
+        property :restricted_field_groups,
+                 as: :restrictedFieldGroups,
+                 exec_context: :decorator,
+                 writable: false,
+                 render_nil: false,
+                 uncacheable: true,
+                 if: ->(*) { field_group_permissions_restricted? }
+
         associated_resource :category
 
         associated_resource :type
@@ -754,6 +766,31 @@ module API
           return @add_work_packages_allowed if defined?(@add_work_packages_allowed)
 
           @add_work_packages_allowed = current_user.allowed_in_project?(:add_work_packages, represented.project)
+        end
+
+        # { "hidden" => [attribute keys], "readOnly" => [attribute keys] } or nil
+        # when the field group access matrix does not restrict anything for the
+        # current user and this work package.
+        def restricted_field_groups
+          hidden = FieldGroupPermission.hidden_attribute_keys(represented, current_user)
+          read_only = FieldGroupPermission.read_only_attribute_keys(represented, current_user)
+          return if hidden.empty? && read_only.empty?
+
+          { "hidden" => hidden, "readOnly" => read_only }
+        end
+
+        def field_group_permissions_restricted?
+          represented.persisted? &&
+            represented.status_id.present? &&
+            field_group_permissions_configured?
+        end
+
+        # Cheap per-request guard so work package types without any configured
+        # matrix skip the (user-specific) restriction computation entirely.
+        def field_group_permissions_configured?
+          RequestStore.fetch("field_group_permissions_configured/#{represented.type_id}") do
+            FieldGroupPermission.exists?(type_id: represented.type_id)
+          end
         end
 
         def project_phase

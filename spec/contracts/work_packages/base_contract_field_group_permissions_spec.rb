@@ -98,4 +98,20 @@ RSpec.describe WorkPackages::BaseContract, "field group permissions" do
       expect(writable).not_to include("due_date")
     end
   end
+
+  context "when the header meta group is read-only for the author" do
+    let(:current_user) { author }
+
+    before do
+      create(:field_group_permission,
+             type:, status:, field_group: FieldGroupPermission::HEADER_GROUP_KEY, role: "author",
+             visible: true, read_only: true)
+    end
+
+    it "removes the header attributes (subject, type, status) from the writable set" do
+      expect(writable).not_to include("subject")
+      expect(writable).not_to include("type_id")
+      expect(writable).not_to include("status_id")
+    end
+  end
 end
