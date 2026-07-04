@@ -34,6 +34,8 @@ import { Highlighting } from 'core-app/features/work-packages/components/wp-fast
 import { HalResource } from 'core-app/features/hal/resources/hal-resource';
 import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destroyed.mixin';
 import { SchemaCacheService } from 'core-app/core/schemas/schema-cache.service';
+import { SchemaResource } from 'core-app/features/hal/resources/schema-resource';
+import { isFieldHiddenByMatrix, isFieldReadonlyByMatrix } from 'core-app/shared/components/fields/field-group-restrictions';
 
 @Component({
   selector: 'wp-status-button',
@@ -72,7 +74,7 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
         this.workPackage = wp;
 
         if (this.workPackage.status) {
-          this.workPackage.status.$load();
+          void (this.workPackage.status as HalResource).$load();
         }
 
         this.cdRef.detectChanges();
@@ -97,20 +99,28 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   }
 
   public get status():HalResource {
-    return this.workPackage.status;
+    return this.workPackage.status as HalResource;
   }
 
-  public get isReadonly() {
-    return this.schema.isReadonly;
+  public get isReadonly():boolean {
+    return this.schema.isReadonly as boolean;
   }
 
-  public get allowed() {
-    return this.schema.isAttributeEditable('status');
+  public get allowed():boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    return (this.schema.isAttributeEditable('status') as boolean)
+      && !isFieldReadonlyByMatrix(this.workPackage, 'status');
   }
 
-  private get schema() {
-    if (this.halEditing.typedState(this.workPackage).hasValue()) {
-      return this.halEditing.typedState(this.workPackage).value!.schema;
+  // Whether the field group access matrix hides the status for the current user.
+  public get hiddenByMatrix():boolean {
+    return isFieldHiddenByMatrix(this.workPackage, 'status');
+  }
+
+  private get schema():SchemaResource {
+    const state = this.halEditing.typedState(this.workPackage);
+    if (state.hasValue()) {
+      return (state.value as { schema:SchemaResource }).schema;
     }
     return this.schemaCache.of(this.workPackage);
   }

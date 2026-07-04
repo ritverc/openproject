@@ -143,4 +143,48 @@ RSpec.describe FieldGroupPermission do
         .to contain_exactly("people", "details")
     end
   end
+
+  describe "header meta group" do
+    it "exposes the reserved key and its synthetic members" do
+      expect(described_class::HEADER_GROUP_KEY).to eq("header")
+      expect(described_class::HEADER_GROUP_MEMBERS).to eq(%w[subject type status])
+    end
+
+    it "provides a stand-in group object for the admin matrix dialog" do
+      meta = described_class.header_meta_group
+
+      expect(meta.key).to eq("header")
+      expect(meta.translated_key).to be_present
+    end
+  end
+
+  describe ".expand_members" do
+    it "expands the header meta group to its synthetic members" do
+      expect(described_class.expand_members(work_package, %w[header]))
+        .to contain_exactly("subject", "type", "status")
+    end
+
+    it "returns an empty array for no keys" do
+      expect(described_class.expand_members(work_package, [])).to eq([])
+    end
+  end
+
+  describe ".hidden_attribute_keys / .read_only_attribute_keys" do
+    it "expands hidden header members" do
+      create(:field_group_permission, type:, status:, field_group: "header", role: "author", visible: false)
+
+      expect(described_class.hidden_attribute_keys(work_package, author))
+        .to contain_exactly("subject", "type", "status")
+      expect(described_class.read_only_attribute_keys(work_package, author)).to eq([])
+    end
+
+    it "expands read-only header members" do
+      create(:field_group_permission, type:, status:, field_group: "header", role: "author",
+                                      visible: true, read_only: true)
+
+      expect(described_class.read_only_attribute_keys(work_package, author))
+        .to contain_exactly("subject", "type", "status")
+      expect(described_class.hidden_attribute_keys(work_package, author)).to eq([])
+    end
+  end
 end

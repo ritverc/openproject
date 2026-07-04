@@ -56,6 +56,10 @@
       end
 
       main.with_row do
+        render(WorkPackageTypes::FormConfiguration::HeaderMetaGroupComponent.new(type: @type))
+      end
+
+      main.with_row do
         content_tag(
           :div,
           id: "type-form-configuration-groups-container",

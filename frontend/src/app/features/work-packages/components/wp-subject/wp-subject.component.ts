@@ -32,6 +32,7 @@ import { WorkPackageResource } from 'core-app/features/hal/resources/work-packag
 import { randomString } from 'core-app/shared/helpers/random-string';
 import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destroyed.mixin';
 import { ApiV3Service } from 'core-app/core/apiv3/api-v3.service';
+import { isFieldHiddenByMatrix } from 'core-app/shared/components/fields/field-group-restrictions';
 
 @Component({
   selector: 'wp-subject',
@@ -49,4 +50,9 @@ export class WorkPackageSubjectComponent extends UntilDestroyedMixin {
   @Input() workPackage:WorkPackageResource;
 
   public readonly uniqueElementIdentifier = `work-packages--subject-type-row-${randomString(16)}`;
+
+  // Whether the field group access matrix hides the header field for the current user.
+  public isHidden(fieldName:string):boolean {
+    return isFieldHiddenByMatrix(this.workPackage, fieldName);
+  }
 }

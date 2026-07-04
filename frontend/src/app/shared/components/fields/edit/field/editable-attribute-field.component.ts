@@ -47,6 +47,7 @@ import { debugLog } from '../../../../helpers/debug_output';
 import { hasSelectionWithin } from '../../../../helpers/selection-helpers';
 import { EditFieldHandler } from 'core-app/shared/components/fields/edit/editing-portal/edit-field-handler';
 import { SchemaResource } from 'core-app/features/hal/resources/schema-resource';
+import { isFieldReadonlyByMatrix } from 'core-app/shared/components/fields/field-group-restrictions';
 
 @Component({
   selector: 'op-editable-attribute-field',
@@ -152,7 +153,8 @@ export class EditableAttributeFieldComponent extends UntilDestroyedMixin impleme
 
   public get isEditable():boolean {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    return !!(this.editForm && this.schema.isAttributeEditable(this.fieldName));
+    return !!(this.editForm && this.schema.isAttributeEditable(this.fieldName))
+      && !isFieldReadonlyByMatrix(this.resource, this.fieldName);
   }
 
   public activateIfEditable(event:MouseEvent|KeyboardEvent):boolean {

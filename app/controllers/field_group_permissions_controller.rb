@@ -74,7 +74,12 @@ class FieldGroupPermissionsController < ApplicationController
 
   def find_field_group
     requested = params[:field_group].presence
-    @field_group = field_groups.find { |group| group.key.to_s == requested } || field_groups.first
+
+    @field_group = if requested == FieldGroupPermission::HEADER_GROUP_KEY
+                     FieldGroupPermission.header_meta_group
+                   else
+                     field_groups.find { |group| group.key.to_s == requested } || field_groups.first
+                   end
     @field_group_key = @field_group&.key.to_s
   end
 

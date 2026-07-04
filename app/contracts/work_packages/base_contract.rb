@@ -278,16 +278,7 @@ module WorkPackages
       group_keys = FieldGroupPermission.non_writable_group_keys(model, user)
       return [] if group_keys.empty?
 
-      restricted_group_members(group_keys).flat_map { |member| field_group_ar_names(member) }
-    end
-
-    # Form attribute names of the given (restricted) field groups.
-    def restricted_group_members(group_keys)
-      groups = model.type.attribute_groups.select do |group|
-        group.is_a?(Type::AttributeGroup) && group_keys.include?(group.key.to_s)
-      end
-
-      groups.flat_map { |group| group.active_members(model.project) }
+      FieldGroupPermission.expand_members(model, group_keys).flat_map { |member| field_group_ar_names(member) }
     end
 
     # Maps a work package form attribute (schema property name) to the active
