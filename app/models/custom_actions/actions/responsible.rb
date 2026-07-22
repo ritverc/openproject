@@ -36,12 +36,16 @@ class CustomActions::Actions::Responsible < CustomActions::Actions::Base
   end
 
   def available_principles
-    User
+    principal_class
       .not_locked
       .select(:id, :type)
       .select_for_name
       .ordered_by_name
       .map { |u| [u.id, u.name] }
+  end
+
+  def principal_class
+    Principal
   end
 
   def apply(work_package)
