@@ -71,7 +71,12 @@ module Users
       end
 
       def built_in_icon(key)
-        :briefcase if key == "department"
+        case key
+        when "department"
+          :briefcase
+        when "direct_manager"
+          :person
+        end
       end
 
       def custom_field_attribute(custom_field)
@@ -89,6 +94,8 @@ module Users
           @user.language.presence && translate_language(@user.language).first
         when "department"
           @user.department&.name
+        when "direct_manager"
+          @user.direct_manager&.name
         else
           @user.public_send(key)
         end
@@ -98,7 +105,7 @@ module Users
         case key
         when "mail"
           can_view_email? || can_manage?
-        when "department"
+        when "department", "direct_manager"
           true
         else
           can_manage?

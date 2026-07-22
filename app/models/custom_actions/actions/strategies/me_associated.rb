@@ -33,6 +33,7 @@
 # Besides selecting a concrete principal, the action value may be one of the
 # special, dynamic markers resolved against the work package at apply time:
 #   - "current_user"           -> the executing user
+#   - "current_user_boss"      -> the direct manager of the executing user
 #   - "work_package_author"    -> the work package's author
 #   - "assigned_to"            -> the work package's assignee
 #   - "responsible"            -> the work package's accountable
@@ -49,12 +50,20 @@ module CustomActions::Actions::Strategies::MeAssociated
   USER_CUSTOM_FIELD_VALUE_PATTERN = /\A#{Regexp.escape(USER_CUSTOM_FIELD_VALUE_PREFIX)}(\d+)\z/
 
   CURRENT_USER_VALUE_KEY = "current_user"
+  CURRENT_USER_BOSS_VALUE_KEY = "current_user_boss"
   AUTHOR_VALUE_KEY = "work_package_author"
   ASSIGNED_TO_VALUE_KEY = "assigned_to"
   RESPONSIBLE_VALUE_KEY = "responsible"
 
   def me_value
     [current_user_value_key, current_user_name]
+  end
+
+  # The direct manager of the executing user (their "boss"), resolved from the
+  # executing user's `direct_manager` field at apply time. Offered alongside the
+  # executing user marker for every user-type action.
+  def me_boss_value
+    [current_user_boss_value_key, current_user_boss_name]
   end
 
   def author_value
@@ -104,10 +113,11 @@ module CustomActions::Actions::Strategies::MeAssociated
   ##
   # The full list of selectable values:
   #   1. the executing user (current_user)
-  #   2. the work package author
-  #   3. the work package assignee / accountable
-  #   4. the value of each user custom field
-  #   5. all available principals (users and groups)
+  #   2. the executing user's direct manager (current_user_boss)
+  #   3. the work package author
+  #   4. the work package assignee / accountable
+  #   5. the value of each user custom field
+  #   6. all available principals (users and groups)
   # The action's own field is never offered as a source.
   def associated
     dynamic_value_sources + available_principles
@@ -130,6 +140,8 @@ module CustomActions::Actions::Strategies::MeAssociated
     case val.to_s
     when current_user_value_key
       resolve_current_user
+    when current_user_boss_value_key
+      resolve_current_user_boss
     when author_value_key
       work_package.author_id_was
     when ASSIGNED_TO_VALUE_KEY
@@ -150,8 +162,20 @@ module CustomActions::Actions::Strategies::MeAssociated
     I18n.t("custom_actions.actions.assigned_to.executing_user_value")
   end
 
+  def current_user_boss_value_key
+    CURRENT_USER_BOSS_VALUE_KEY
+  end
+
+  def current_user_boss_name
+    I18n.t("custom_actions.actions.assigned_to.executing_user_boss_value")
+  end
+
   def has_me_value?
     values.first == current_user_value_key
+  end
+
+  def has_me_boss_value?
+    values.first == current_user_boss_value_key
   end
 
   def has_author_value?
@@ -161,6 +185,7 @@ module CustomActions::Actions::Strategies::MeAssociated
   def validate(errors)
     super
     validate_me_value(errors)
+    validate_me_boss_value(errors)
   end
 
   private
@@ -169,7 +194,7 @@ module CustomActions::Actions::Strategies::MeAssociated
   # The dynamic (non-principal) value sources offered by the action, with the
   # action's own field filtered out.
   def dynamic_value_sources
-    ([me_value, author_value, assigned_to_value, responsible_value] + user_custom_field_values)
+    ([me_value, me_boss_value, author_value, assigned_to_value, responsible_value] + user_custom_field_values)
       .reject { |key, _| key == self_source_marker }
   end
 
@@ -179,7 +204,7 @@ module CustomActions::Actions::Strategies::MeAssociated
   end
 
   def built_in_value_markers
-    [current_user_value_key, author_value_key, ASSIGNED_TO_VALUE_KEY, RESPONSIBLE_VALUE_KEY]
+    [current_user_value_key, current_user_boss_value_key, author_value_key, ASSIGNED_TO_VALUE_KEY, RESPONSIBLE_VALUE_KEY]
   end
 
   ##
@@ -210,6 +235,16 @@ module CustomActions::Actions::Strategies::MeAssociated
     User.current.id if User.current.logged?
   end
 
+  # The direct manager of the executing user, resolved at apply time so it
+  # reflects the current state of the user's "direct manager" field. Returns
+  # nil when the executing user is not logged in or has no direct manager set;
+  # in the latter case the target field is cleared.
+  def resolve_current_user_boss
+    return unless User.current.logged?
+
+    User.current.direct_manager_id
+  end
+
   ##
   # The work package's *original* value for the given user custom field (the
   # user id), or nil when unset. For multi-value fields the first present value
@@ -227,6 +262,23 @@ module CustomActions::Actions::Strategies::MeAssociated
 
   def validate_me_value(errors)
     if has_me_value? && !User.current.logged?
+      errors.add :actions,
+                 :not_logged_in,
+                 name: human_name
+    end
+  end
+
+  # The "executing user boss" marker mirrors the "executing user" marker: it
+  # only requires the executing user to be logged in. Whether the executing user
+  # has a direct manager set is NOT validated at save time — if the field is
+  # unset, the marker resolves to nil at apply time (clearing the target field),
+  # which is the expected "expand to the user's field value" behavior.
+  # Validating the boss field here would add a custom error type whose i18n
+  # resolution crashes OpenProject's customized full_message pipeline
+  # (config.active_model.i18n_customize_full_message = true +
+  # raise_on_missing_translations), so we deliberately avoid it.
+  def validate_me_boss_value(errors)
+    if has_me_boss_value? && !User.current.logged?
       errors.add :actions,
                  :not_logged_in,
                  name: human_name

@@ -669,6 +669,7 @@ class PermittedParams
           mail_notification
           language
           custom_fields
+          direct_manager_id
         ),
         wiki_page: %i(
           title

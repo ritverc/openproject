@@ -660,6 +660,7 @@ ru:
       add: Добавить действие
       assigned_to:
         executing_user_value: "(назначить пользователю-исполнителю)"
+        executing_user_boss_value: "(назначить руководителю пользователя-исполнителя)"
     conditions: Условия
     plural: Пользовательские действия
     new: Новое пользовательское действие
@@ -2064,6 +2065,7 @@ ru:
         admin: Администратор
         auth_source: Источник аутентификации
         department: Department
+        direct_manager: Непосредственный руководитель
         ldap_auth_source: Подключение к LDAP
         identity_url: URL идентификации
         current_password: Текущий пароль

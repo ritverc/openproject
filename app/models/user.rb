@@ -92,6 +92,13 @@ class User < Principal
 
   belongs_to :ldap_auth_source, optional: true
 
+  # The user's direct manager (immediate supervisor). May reference either a
+  # User or a Group (both are Principals stored in the `users` STI table),
+  # mirroring how WorkPackage#assigned_to is modeled. Nullable: a user need not
+  # have a direct manager. Used by the "executing user boss" custom action
+  # meta-value, which resolves to this principal at apply time.
+  belongs_to :direct_manager, class_name: "Principal", optional: true
+
   # Authorized OAuth grants
   has_many :oauth_grants, # rubocop:disable Rails/InverseOf
            class_name: "Doorkeeper::AccessGrant",

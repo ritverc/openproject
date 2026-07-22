@@ -29,7 +29,7 @@
 #++
 
 class UserCustomFieldSection < CustomFieldSection
-  BUILT_IN_ATTRIBUTES = %w[login firstname lastname mail language department].freeze
+  BUILT_IN_ATTRIBUTES = %w[login firstname lastname mail language department direct_manager].freeze
 
   has_many :custom_fields,
            class_name: "UserCustomField",

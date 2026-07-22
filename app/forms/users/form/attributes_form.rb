@@ -128,6 +128,8 @@ module Users
           render_language(group)
         when "department"
           render_department(group)
+        when "direct_manager"
+          render_direct_manager(group)
         end
       end
 
@@ -175,6 +177,42 @@ module Users
         options = { disabled: true }
         options[:caption] = I18n.t("user.department_ldap_managed_caption") if @user.department&.ldap_managed?
         options
+      end
+
+      # The direct manager is a principal (User or Group) chosen through the
+      # principals autocompleter. Editable by users allowed to create or manage
+      # users; disabled otherwise. A user can never be their own direct manager,
+      # so the user's own id is excluded from the selectable principals.
+      def render_direct_manager(group)
+        group.autocompleter(
+          name: :direct_manager_id,
+          label: User.human_attribute_name(:direct_manager),
+          input_width: :medium,
+          autocomplete_options: {
+            component: "opce-user-autocompleter",
+            defaultData: false,
+            placeholder: I18n.t(:label_user_search),
+            resource: "principals",
+            url: ::API::V3::Utilities::PathHelper::ApiV3Path.principals,
+            filters: direct_manager_filters,
+            searchKey: "any_name_attribute",
+            multiple: false,
+            focusDirectly: false,
+            disabled: !@contract.writable?(:direct_manager_id)
+          }
+        )
+      end
+
+      # Filters for the direct manager autocompleter: only active users and
+      # groups (not locked principals, not placeholder users), and never the
+      # user being edited themselves.
+      def direct_manager_filters
+        filters = [
+          { name: "type", operator: "=", values: %w[User Group] },
+          { name: "status", operator: "!", values: [Principal.statuses["locked"].to_s] }
+        ]
+        filters << { name: "id", operator: "!", values: [@user.id.to_s] } if @user.persisted?
+        filters
       end
 
       # Editability options for a built-in text field. Administration disables

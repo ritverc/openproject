@@ -55,6 +55,14 @@ module Users
     attribute :force_password_change,
               writable: ->(*) { user.admin? }
 
+    # The direct manager is a principal (User or Group) reference. It is editable
+    # by users allowed to create or manage users, like the other administrative
+    # account attributes.
+    attribute :direct_manager_id,
+              writable: ->(*) { can_create_or_manage_users? }
+
+    validate :validate_direct_manager
+
     def self.model
       User
     end
@@ -118,6 +126,20 @@ module Users
     def existing_auth_source
       if ldap_auth_source_id && LdapAuthSource.find_by_unique(ldap_auth_source_id).nil?
         errors.add :auth_source, :error_not_found
+      end
+    end
+
+    # The direct manager, when set, must reference an existing principal that is
+    # either a User or a Group (the two principal types a manager can be). A
+    # user cannot be their own direct manager.
+    def validate_direct_manager
+      return if direct_manager_id.blank?
+
+      manager = Principal.find_by(id: direct_manager_id)
+      if manager.nil?
+        errors.add :direct_manager_id, :error_not_found
+      elsif manager.id == model.id
+        errors.add :direct_manager_id, :invalid
       end
     end
 
