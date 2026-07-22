@@ -33,7 +33,8 @@ module WorkflowHelper
     [
       { name: "always", label: I18n.t(:"admin.workflows.tabs.default_transitions") },
       { name: "author", label: I18n.t(:"admin.workflows.tabs.user_author") },
-      { name: "assignee", label: I18n.t(:"admin.workflows.tabs.user_assignee") }
+      { name: "assignee", label: I18n.t(:"admin.workflows.tabs.user_assignee") },
+      { name: "responsible", label: I18n.t(:"admin.workflows.tabs.user_responsible") }
     ].map do |tab|
       tab.merge(
         partial: "workflows/form",

@@ -106,8 +106,12 @@ class Type < ApplicationRecord
       subquery.where(workflow_table[:author].eq(true))
     when "assignee"
       subquery.where(workflow_table[:assignee].eq(true))
+    when "responsible"
+      subquery.where(workflow_table[:responsible].eq(true))
     else
-      subquery.where(workflow_table[:author].eq(false).and(workflow_table[:assignee].eq(false)))
+      subquery.where(workflow_table[:author].eq(false)
+                       .and(workflow_table[:assignee].eq(false))
+                       .and(workflow_table[:responsible].eq(false)))
     end
   end
 

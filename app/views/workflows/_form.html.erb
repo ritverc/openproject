@@ -35,6 +35,8 @@ See COPYRIGHT and LICENSE files for more details.
     render(Primer::OpenProject::Heading.new(tag: :h3, my: 3)) { t(:label_additional_workflow_transitions_for_assignee) }
   elsif name == "author"
     render(Primer::OpenProject::Heading.new(tag: :h3, my: 3)) { t(:label_additional_workflow_transitions_for_author) }
+  elsif name == "responsible"
+    render(Primer::OpenProject::Heading.new(tag: :h3, my: 3)) { t(:label_additional_workflow_transitions_for_responsible) }
   end
 %>
 

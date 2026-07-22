@@ -511,6 +511,7 @@ ru:
         default_transitions: Переходы по умолчанию
         user_author: Пользователь является автором
         user_assignee: Пользователь является назначенным
+        user_responsible: Пользователь является ответственным
       status_button: Статус
       statuses_dialog:
         title: Статусы
@@ -1558,6 +1559,7 @@ ru:
       matrix_caption: Матрица рабочего процесса
       matrix_caption_assignee: Матрица рабочего процесса для назначенного
       matrix_caption_author: Матрица рабочего процесса для автора
+      matrix_caption_responsible: Матрица рабочего процесса для ответственного
       matrix_checkbox_label: Разрешить переход от %{old_status} к %{new_status}
       matrix_check_all_label: Разрешить все переходы
       matrix_uncheck_all_label: Запретить все переходы
@@ -3996,6 +3998,7 @@ ru:
   label_added_time_by: Добавлено %{author} %{age} назад
   label_additional_workflow_transitions_for_assignee: Дополнительные переходы допускается, если пользователь является правопреемником
   label_additional_workflow_transitions_for_author: Дополнительные переходы допускаются, если пользователь является автором
+  label_additional_workflow_transitions_for_responsible: Дополнительные переходы допускаются, если пользователь является ответственным
   label_administration: Администрирование
   label_interface_colors: Цвета интерфейса
   label_interface_colors_description: 'Эти цвета определяют внешний вид приложения. Если вы их измените, то тема будет автоматически изменена на пользовательскую тему, Но мы не можем гарантировать соответствие минимальным требованиям по контрасту (WCAG 2.1). '

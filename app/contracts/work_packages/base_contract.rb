@@ -779,7 +779,8 @@ module WorkPackages
                                model.type_id,
                                user_roles.map(&:id),
                                user_is_author?,
-                               user_was_or_is_assignee?)
+                               user_was_or_is_assignee?,
+                               user_was_or_is_responsible?)
 
       Status.where(id: workflows.select(:new_status_id))
     end
@@ -790,6 +791,10 @@ module WorkPackages
 
     def user_is_author?
       model.author == user
+    end
+
+    def user_was_or_is_responsible?
+      model.responsible_id_changed? ? model.responsible_id_was == user.id : model.responsible_id == user.id
     end
 
     def user_roles

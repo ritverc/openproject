@@ -512,6 +512,7 @@ en:
         default_transitions: "Default transitions"
         user_author: "User is author"
         user_assignee: "User is assignee"
+        user_responsible: "User is responsible"
       status_button: "Status"
       statuses_dialog:
         title: "Statuses"
@@ -1601,6 +1602,7 @@ en:
       matrix_caption: "Workflow matrix"
       matrix_caption_assignee: "Workflow matrix for assignee"
       matrix_caption_author: "Workflow matrix for author"
+      matrix_caption_responsible: "Workflow matrix for responsible"
       matrix_checkbox_label: "Allow transition from %{old_status} to %{new_status}"
       matrix_check_all_label: "Allow all transitions"
       matrix_uncheck_all_label: "Disallow all transitions"
@@ -4035,6 +4037,7 @@ en:
   label_added_time_by: "Added by %{author} %{age} ago"
   label_additional_workflow_transitions_for_assignee: "Additional transitions allowed when the user is the assignee"
   label_additional_workflow_transitions_for_author: "Additional transitions allowed when the user is the author"
+  label_additional_workflow_transitions_for_responsible: "Additional transitions allowed when the user is the responsible"
   label_administration: "Administration"
   label_interface_colors: "Interface colors"
   label_interface_colors_description: "These colors control how the application looks. If you modify them the theme will automatically be changed to Custom theme, but we can’t assure the compliance of the accessibility contrast minimums (WCAG 2.1). "

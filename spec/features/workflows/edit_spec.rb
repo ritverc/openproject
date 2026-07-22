@@ -150,6 +150,44 @@ RSpec.describe "Workflow edit", :js do
     end
   end
 
+  it "allows editing the workflow when the user is responsible" do
+    create(:workflow, role_id: role.id, type_id: type.id,
+                      old_status_id: statuses[0].id, new_status_id: statuses[1].id,
+                      author: false, assignee: false, responsible: true)
+
+    visit_workflow_edit(roles: [role], tab: "responsible")
+
+    within "#workflow_form_responsible" do
+      check workflow_checkbox(1, 0)
+    end
+
+    click_button "Save"
+
+    expect_flash(message: "Successful update.")
+
+    within "#workflow_form_responsible" do
+      expect(page)
+        .to have_field workflow_checkbox(0, 1), checked: true
+      expect(page)
+        .to have_field workflow_checkbox(1, 0), checked: true
+
+      expect(Workflow.where(type_id: type.id, role_id: role.id, responsible: true).count).to be 2
+
+      # the newly added Workflow
+      w = Workflow.where(role_id: role.id, type_id: type.id, old_status_id: statuses[1].id, new_status_id: statuses[0].id).first
+      assert !w.author
+      assert !w.assignee
+      assert w.responsible
+
+      # The always workflow is unchanged
+      w = Workflow.where(role_id: role.id, type_id: type.id, old_status_id: statuses[0].id, new_status_id: statuses[1].id,
+                         responsible: false).first
+      assert !w.author
+      assert !w.assignee
+      assert !w.responsible
+    end
+  end
+
   context "when switching tabs", :js do
     let!(:author_workflow) do
       create(:workflow, role_id: role.id, type_id: type.id,
@@ -160,6 +198,11 @@ RSpec.describe "Workflow edit", :js do
       create(:workflow, role_id: role.id, type_id: type.id,
                         old_status_id: statuses[0].id, new_status_id: statuses[2].id,
                         author: false, assignee: true)
+    end
+    let!(:responsible_workflow) do
+      create(:workflow, role_id: role.id, type_id: type.id,
+                        old_status_id: statuses[1].id, new_status_id: statuses[0].id,
+                        author: false, assignee: false, responsible: true)
     end
 
     before do
@@ -186,6 +229,15 @@ RSpec.describe "Workflow edit", :js do
 
       within "#workflow_form_assignee" do
         expect(page).to have_field workflow_checkbox(0, 2), checked: true
+        expect(page).to have_no_field workflow_checkbox(0, 1)
+      end
+    end
+
+    it "shows the responsible matrix when switching to the responsible tab" do
+      click_link "User is responsible"
+
+      within "#workflow_form_responsible" do
+        expect(page).to have_field workflow_checkbox(1, 0), checked: true
         expect(page).to have_no_field workflow_checkbox(0, 1)
       end
     end

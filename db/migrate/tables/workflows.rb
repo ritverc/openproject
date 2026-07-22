@@ -39,6 +39,7 @@ class Tables::Workflows < Tables::Base
       t.references :role, null: false, foreign_key: { on_delete: :cascade, on_update: :cascade }
       t.boolean :assignee, default: false, null: false
       t.boolean :author, default: false, null: false
+      t.boolean :responsible, default: false, null: false
 
       t.index %i[role_id type_id old_status_id], name: "wkfs_role_type_old_status"
     end

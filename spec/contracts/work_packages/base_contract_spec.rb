@@ -1642,12 +1642,14 @@ RSpec.describe WorkPackages::BaseContract do
     let(:type) { build_stubbed(:type) }
     let(:assignee_user) { build_stubbed(:user) }
     let(:author_user) { build_stubbed(:user) }
+    let(:responsible_user) { build_stubbed(:user) }
     let(:current_status) { build_stubbed(:status) }
     let(:version) { build_stubbed(:version) }
     let(:work_package) do
       build_stubbed(:work_package,
                     assigned_to: assignee_user,
                     author: author_user,
+                    responsible: responsible_user,
                     status: current_status,
                     version:,
                     type:)
@@ -1674,7 +1676,7 @@ RSpec.describe WorkPackages::BaseContract do
     shared_examples_for "new_statuses_allowed_to" do
       let(:base_scope) do
         from_workflows = Workflow
-                        .from_status(current_status.id, type.id, [role.id], author, assignee)
+                        .from_status(current_status.id, type.id, [role.id], author, assignee, responsible)
                         .select(:new_status_id)
 
         Status.where(id: from_workflows)
@@ -1712,6 +1714,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
 
@@ -1721,6 +1724,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { true }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
 
@@ -1730,6 +1734,17 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { true }
+        let(:responsible) { false }
+      end
+    end
+
+    context "with the responsible asking" do
+      let(:current_user) { responsible_user }
+
+      it_behaves_like "new_statuses_allowed_to" do
+        let(:author) { false }
+        let(:assignee) { false }
+        let(:responsible) { true }
       end
     end
 
@@ -1742,6 +1757,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
 
@@ -1763,6 +1779,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
   end
