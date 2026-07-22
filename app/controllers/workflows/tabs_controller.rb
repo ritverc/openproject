@@ -195,9 +195,10 @@ class Workflows::TabsController < ApplicationController
   def workflows_for_form
     workflows = @type.workflows.where(role_id: @roles.map(&:id))
     @workflows = {}
-    @workflows["always"] = workflows.select { |w| !w.author && !w.assignee }
+    @workflows["always"] = workflows.select { |w| !w.author && !w.assignee && !w.responsible }
     @workflows["author"] = workflows.select(&:author)
     @workflows["assignee"] = workflows.select(&:assignee)
+    @workflows["responsible"] = workflows.select(&:responsible)
   end
 
   def permitted_status_params
@@ -227,7 +228,8 @@ class Workflows::TabsController < ApplicationController
           old_status_id: old_id.to_i,
           new_status_id: new_id.to_i,
           author: @tab == "author",
-          assignee: @tab == "assignee"
+          assignee: @tab == "assignee",
+          responsible: @tab == "responsible"
         )
         if had_transition
           params[old_id] ||= {}

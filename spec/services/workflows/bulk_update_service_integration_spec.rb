@@ -129,6 +129,27 @@ RSpec.describe Workflows::BulkUpdateService, "integration", type: :model do
       end
     end
 
+    context "with additional responsible transitions" do
+      let(:tab) { "responsible" }
+      let(:params) do
+        {
+          status3.id => { status1.id => ["responsible"] }
+        }
+      end
+
+      it "sets the workflows" do
+        subject
+
+        expect(Workflow.where(type_id: type.id, role_id: role.id).count)
+          .to be 1
+
+        w = Workflow.where(role_id: role.id, type_id: type.id, old_status_id: status3.id, new_status_id: status1.id).first
+        assert !w.author
+        assert !w.assignee
+        assert w.responsible
+      end
+    end
+
     context "without transitions" do
       let(:tab) { "always" }
       let(:params) do

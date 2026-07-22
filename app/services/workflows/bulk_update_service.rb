@@ -66,7 +66,8 @@ class Workflows::BulkUpdateService < BaseServices::Update
                                       old_status: status_map[status_id.to_i],
                                       new_status: status_map[new_status_id.to_i],
                                       author: author?,
-                                      assignee: assignee?)
+                                      assignee: assignee?,
+                                      responsible: responsible?)
       end
     end
 
@@ -78,15 +79,17 @@ class Workflows::BulkUpdateService < BaseServices::Update
       Workflow.where(role_id: role.id, type_id: type.id, author: true).delete_all
     elsif assignee?
       Workflow.where(role_id: role.id, type_id: type.id, assignee: true).delete_all
+    elsif responsible?
+      Workflow.where(role_id: role.id, type_id: type.id, responsible: true).delete_all
     else
-      Workflow.where(role_id: role.id, type_id: type.id, assignee: false, author: false).delete_all
+      Workflow.where(role_id: role.id, type_id: type.id, assignee: false, author: false, responsible: false).delete_all
     end
   end
 
   def bulk_insert(workflows)
     return unless workflows.any?
 
-    columns = %w(role_id type_id old_status_id new_status_id author assignee)
+    columns = %w(role_id type_id old_status_id new_status_id author assignee responsible)
     values = workflows.map { |w| w.attributes.slice(*columns) }
 
     Workflow.insert_all values
@@ -102,5 +105,9 @@ class Workflows::BulkUpdateService < BaseServices::Update
 
   def assignee?
     @tab == "assignee"
+  end
+
+  def responsible?
+    @tab == "responsible"
   end
 end

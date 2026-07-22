@@ -32,7 +32,7 @@ class Workflow < ApplicationRecord
   belongs_to :role
   belongs_to :old_status, class_name: "Status"
   belongs_to :new_status, class_name: "Status"
-  belongs_to :type, inverse_of: "own_workflows"
+  belongs_to :type, inverse_of: "workflows"
 
   validates :role, :old_status, :new_status, presence: true
 
@@ -56,22 +56,36 @@ class Workflow < ApplicationRecord
     result
   end
 
-  # Gets all work flows originating from the provided status that are defined for any of the roles.
-  # Workflows specific to author or assignee are ignored unless author and/or assignee are set to true. In
-  # such a case, those work flows are additionally returned.
-  def self.from_status(old_status_id, role_ids, author: false, assignee: false)
-    workflows = where(old_status_id:, role_id: role_ids)
+  # Gets all work flows originating from the provided status
+  # that:
+  #   * are defined for the type
+  #   * are defined for any of the roles
+  #
+  # Workflows specific to author, assignee or responsible are ignored unless the
+  # corresponding flag is set to true. In such a case, those work flows are
+  # additionally returned on top of the default transitions.
+  def self.from_status(old_status_id, type_id, role_ids, author = false, assignee = false, responsible = false)
+    table = arel_table
 
-    if author && assignee
-      workflows
-    elsif author || assignee
-      workflows
-        .merge(Workflow.where(author:).or(Workflow.where(assignee:)))
-    else
-      workflows
-        .where(author:)
-        .where(assignee:)
-    end
+    # Default transitions apply to everyone with the role.
+    conditions = [
+      table[:author].eq(false).and(table[:assignee].eq(false)).and(table[:responsible].eq(false))
+    ]
+
+    # Additionally include role-specific transitions when the user matches the
+    # respective relation to the work package.
+    conditions << table[:author].eq(true).and(table[:assignee].eq(false)).and(table[:responsible].eq(false)) if author
+    conditions << table[:author].eq(false).and(table[:assignee].eq(true)).and(table[:responsible].eq(false)) if assignee
+    conditions << table[:author].eq(false).and(table[:assignee].eq(false)).and(table[:responsible].eq(true)) if responsible
+
+    tab_condition = conditions.reduce { |acc, condition| acc.or(condition) }
+
+    where(
+      table[:old_status_id].eq(old_status_id)
+        .and(table[:type_id].eq(type_id))
+        .and(table[:role_id].in(role_ids))
+        .and(tab_condition)
+    )
   end
 
   # Find potential statuses the user could be allowed to switch issues to
@@ -122,8 +136,8 @@ class Workflow < ApplicationRecord
       transaction do
         where(type_id: target_type.id, role_id: target_role.id).delete_all
         connection.insert <<-SQL
-          INSERT INTO #{Workflow.table_name} (type_id, role_id, old_status_id, new_status_id, author, assignee)
-          SELECT #{target_type.id}, #{target_role.id}, old_status_id, new_status_id, author, assignee
+          INSERT INTO #{Workflow.table_name} (type_id, role_id, old_status_id, new_status_id, author, assignee, responsible)
+          SELECT #{target_type.id}, #{target_role.id}, old_status_id, new_status_id, author, assignee, responsible
           FROM #{Workflow.table_name}
           WHERE type_id = #{source_type.id} AND role_id = #{source_role.id}
         SQL

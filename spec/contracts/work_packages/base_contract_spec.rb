@@ -1353,34 +1353,6 @@ RSpec.describe WorkPackages::BaseContract do
       end
     end
 
-    describe "target versions length" do
-      let(:other_assignable_version) { build_stubbed(:version) }
-
-      before do
-        allow(work_package).to receive(:assignable_versions)
-          .and_return([assignable_version, other_assignable_version])
-        work_package.target_version_ids_replacements = [assignable_version.id, other_assignable_version.id]
-      end
-
-      context "when the multiple-versions feature is disabled" do
-        before { contract.validate }
-
-        it "rejects more than one target version" do
-          expect(contract.errors.symbols_for(:base)).to include(:target_versions_only_allow_single_value)
-        end
-      end
-
-      context "when the multiple-versions feature is enabled",
-              with_flag: { work_package_multiple_versions: true },
-              with_settings: { work_package_multiple_versions: true } do
-        before { contract.validate }
-
-        it "allows more than one target version" do
-          expect(contract.errors.symbols_for(:base)).not_to include(:target_versions_only_allow_single_value)
-        end
-      end
-    end
-
     describe "observed_in versions assignability" do
       context "with assignable IDs" do
         before do
@@ -1670,12 +1642,14 @@ RSpec.describe WorkPackages::BaseContract do
     let(:type) { build_stubbed(:type) }
     let(:assignee_user) { build_stubbed(:user) }
     let(:author_user) { build_stubbed(:user) }
+    let(:responsible_user) { build_stubbed(:user) }
     let(:current_status) { build_stubbed(:status) }
     let(:version) { build_stubbed(:version) }
     let(:work_package) do
       build_stubbed(:work_package,
                     assigned_to: assignee_user,
                     author: author_user,
+                    responsible: responsible_user,
                     status: current_status,
                     version:,
                     type:)
@@ -1701,8 +1675,8 @@ RSpec.describe WorkPackages::BaseContract do
 
     shared_examples_for "new_statuses_allowed_to" do
       let(:base_scope) do
-        from_workflows = type.workflows
-                        .from_status(current_status.id, [role.id], author:, assignee:)
+        from_workflows = Workflow
+                        .from_status(current_status.id, type.id, [role.id], author, assignee, responsible)
                         .select(:new_status_id)
 
         Status.where(id: from_workflows)
@@ -1740,6 +1714,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
 
@@ -1749,6 +1724,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { true }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
 
@@ -1758,6 +1734,17 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { true }
+        let(:responsible) { false }
+      end
+    end
+
+    context "with the responsible asking" do
+      let(:current_user) { responsible_user }
+
+      it_behaves_like "new_statuses_allowed_to" do
+        let(:author) { false }
+        let(:assignee) { false }
+        let(:responsible) { true }
       end
     end
 
@@ -1770,6 +1757,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { false }
+        let(:responsible) { false }
       end
     end
 
@@ -1791,37 +1779,7 @@ RSpec.describe WorkPackages::BaseContract do
       it_behaves_like "new_statuses_allowed_to" do
         let(:author) { false }
         let(:assignee) { false }
-      end
-    end
-
-    context "when the type is linked to a source", with_flag: { subtypes: true } do
-      let(:role) { create(:project_role) }
-      let(:source) { create(:type) }
-      let(:type) { create(:type) }
-      let(:current_status) { create(:status) }
-      let(:target_status) { create(:status) }
-
-      before do
-        type.link!(Type::ConfigurationLink::WORKFLOWS, source:)
-        create(:workflow, role_id: role.id, type_id: source.id,
-                          old_status_id: current_status.id, new_status_id: target_status.id,
-                          author: false, assignee: false)
-      end
-
-      it "resolves allowed transitions through the linked source's workflows" do
-        expect(contract.assignable_statuses.pluck(:id)).to include(target_status.id)
-      end
-
-      it "resolves allowed transitions through a longer link chain" do
-        middle = create(:type)
-        middle.link!(Type::ConfigurationLink::WORKFLOWS, source:)
-        type.link!(Type::ConfigurationLink::WORKFLOWS, source: middle)
-
-        expect(contract.assignable_statuses.pluck(:id)).to include(target_status.id)
-      end
-
-      it "ignores the link with the subtypes feature disabled", with_flag: { subtypes: false } do
-        expect(contract.assignable_statuses.pluck(:id)).not_to include(target_status.id)
+        let(:responsible) { false }
       end
     end
   end

@@ -56,6 +56,8 @@ RSpec.describe Workflow do
       it { expect(subject.author).to eq(workflow_src.author) }
 
       it { expect(subject.assignee).to eq(workflow_src.assignee) }
+
+      it { expect(subject.responsible).to eq(workflow_src.responsible) }
     end
 
     context "for a workflow w/o author or assignee" do
@@ -99,6 +101,23 @@ RSpec.describe Workflow do
                type_id: type.id,
                role:,
                assignee: true)
+      end
+
+      before { described_class.copy(type, role, type_target, role_target) }
+
+      it_behaves_like "copied workflow" do
+        subject { described_class.order(Arel.sql("id DESC")).first }
+      end
+    end
+
+    context "for a workflow with responsible" do
+      let!(:workflow_src) do
+        create(:workflow,
+               old_status: status0,
+               new_status: status1,
+               type_id: type.id,
+               role:,
+               responsible: true)
       end
 
       before { described_class.copy(type, role, type_target, role_target) }
@@ -159,5 +178,64 @@ RSpec.describe Workflow do
     end
 
     it { is_expected.to match_array(project_roles) }
+  end
+
+  describe ".from_status" do
+    shared_let(:status0) { create(:status) }
+    shared_let(:status1) { create(:status) }
+    shared_let(:status2) { create(:status) }
+    shared_let(:role) { create(:project_role) }
+    shared_let(:type) { create(:type) }
+
+    # Default transition (always applicable)
+    let!(:default_workflow) do
+      create(:workflow, old_status: status0, new_status: status1,
+                        type_id: type.id, role:)
+    end
+
+    # Author-only transition
+    let!(:author_workflow) do
+      create(:workflow, old_status: status0, new_status: status2,
+                        type_id: type.id, role:, author: true)
+    end
+
+    # Assignee-only transition
+    let!(:assignee_workflow) do
+      create(:workflow, old_status: status0, new_status: status1,
+                        type_id: type.id, role:, assignee: true)
+    end
+
+    # Responsible-only transition
+    let!(:responsible_workflow) do
+      create(:workflow, old_status: status0, new_status: status2,
+                        type_id: type.id, role:, responsible: true)
+    end
+
+    def new_status_ids(author: false, assignee: false, responsible: false)
+      described_class
+        .from_status(status0.id, type.id, [role.id], author, assignee, responsible)
+        .pluck(:new_status_id)
+    end
+
+    it "returns only default transitions for a user that is neither author, assignee nor responsible" do
+      expect(new_status_ids).to contain_exactly(status1.id)
+    end
+
+    it "includes author transitions when the user is the author" do
+      expect(new_status_ids(author: true)).to contain_exactly(status1.id, status2.id)
+    end
+
+    it "includes assignee transitions when the user is the assignee" do
+      expect(new_status_ids(assignee: true)).to contain_exactly(status1.id)
+    end
+
+    it "includes responsible transitions when the user is the responsible" do
+      expect(new_status_ids(responsible: true)).to contain_exactly(status1.id, status2.id)
+    end
+
+    it "includes all role-specific transitions when the user is author, assignee and responsible" do
+      ids = new_status_ids(author: true, assignee: true, responsible: true)
+      expect(ids).to contain_exactly(status1.id, status2.id)
+    end
   end
 end
