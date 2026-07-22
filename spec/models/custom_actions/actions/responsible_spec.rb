@@ -37,7 +37,7 @@ RSpec.describe CustomActions::Actions::Responsible do
     principals = [build_stubbed(:user),
                   build_stubbed(:group)]
 
-    allow(User)
+    allow(Principal)
       .to receive_message_chain(:not_locked, :select, :select_for_name, :ordered_by_name)
             .and_return(principals)
 
