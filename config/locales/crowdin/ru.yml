@@ -630,9 +630,7 @@ ru:
         '
     tls_options:
       verify_peer: Проверка SSL сертификата
-      verify_peer_description_html: 'Включает строгую проверку SSL цепочки доверенных сертификатов. <br> <strong>Предупреждение:</strong> Отключение этой опции отключает проверку SSL сертификата сервера LDAP. Это делает ваше соединение уязвимым к атакам "человек посередине".
-
-        '
+      verify_peer_description_html: 'Включает строгую проверку SSL цепочки доверенных сертификатов. <br> <strong>Предупреждение:</strong> Отключение этой опции отключает проверку SSL сертификата сервера LDAP. Это делает ваше соединение уязвимым к атакам "человек посередине".'
       tls_certificate_description: Если сертификат сервера LDAP отсутствует в источниках доверия этой системы, вы можете добавить его вручную. Введите строку сертификации PEM X509.
   forums:
     show:
@@ -651,16 +649,16 @@ ru:
       label_edit_color: Изменить цвет
     label_no_color: Нет цвета
     label_properties: Свойства
-    label_really_delete_color: 'Вы уверены, что хотите удалить этот цвет? Типы, использующие этот цвет, не будут удалены.
-
-      '
+    label_really_delete_color: 'Вы уверены, что хотите удалить этот цвет? Типы, использующие этот цвет, не будут удалены.'
   custom_actions:
     actions:
       name: Действия
       add: Добавить действие
       assigned_to:
-        executing_user_value: "(назначить пользователю-исполнителю)"
-        executing_user_boss_value: "(назначить руководителю пользователя-исполнителя)"
+        executing_user_value: "(назначить \"=меня\")"
+        author_value: "(назначить автору задачи)"
+        executing_user_boss_value: "(назначить \"моему\" руководителю)"
+        field_value: "(Значение поля: %{name})"
     conditions: Условия
     plural: Пользовательские действия
     new: Новое пользовательское действие
@@ -1438,46 +1436,44 @@ ru:
       no_results_content_text: Создать новый тип
     edit:
       form_configuration:
-        add_attribute_group: Section
+        add_attribute_group: Секция
         add_query_group: Related work packages table
         blankslate_description: Добавьте группы с помощью кнопки выше или перетащите атрибуты с левой панели.
         blankslate_title: Нет групп
         builtin_field: Встроенное поле
-        confirm_delete_group: Are you sure you want to delete this section? This action cannot be automatically reversed.
+        confirm_delete_group: Вы действительно хотите удалить эту секцию? Это действие необратимо.
         confirm_reset: Вы уверены, что хотите сбросить конфигурацию формы?
         custom_field: Настраиваемое поле
-        delete_group: Delete section
+        delete_group: Удалить секцию
         drag_to_activate: Чтобы включить поля, перетащите их отсюда
         drag_to_reorder: Перетащите, чтобы изменить порядок
         edit_query: Редактировать представление
         empty_group_hint: Перетащите атрибуты сюда
         filter_inactive: Фильтровать атрибуты
-        group_actions: Section actions
-        group_name_label: Section name
+        group_actions: Настройки секции
+        group_name_label: Название секции
         inactive_attributes_heading: Неактивные атрибуты
         invalid_attribute_groups: Конфигурация формы является недопустимой.
         invalid_query: Недопустимая конфигурация встраиваемого представления.
-        label_group: Section
+        label_group: Секция
         no_inactive_attributes: Нет неактивных атрибутов
         not_found: Запрашиваемый элемент конфигурации формы не найден.
         query_group_label: Related work packages table
-        remove_attribute: Remove from section
-        rename_group: Rename section
-        reset_description: 'Это сбросит атрибуты к группе по умолчанию и отключит ВСЕ настраиваемые поля.
-
-          '
+        remove_attribute: Удалить из секции
+        rename_group: Переименовать секцию
+        reset_description: 'Это сбросит атрибуты к группе по умолчанию и отключит ВСЕ настраиваемые поля.'
         reset_title: Сбросить настройки формы
-        reset_to_defaults: Reset form
+        reset_to_defaults: Сбросить вид дформы
         row_actions: Действия со строками
         tab: Настройка форм
         untitled_group: Безымянная группа
       project_attributes:
         actions:
-          label_disable_all: Disable all
-          label_enable_all: Enable all
-        description: Select the project attributes that you want to enable for this work package type. Enabled project attributes are displayed in a separate tab in work packages of this type. Users with the necessary permissions can view and edit these attributes there.
-        filter: Search by section or name
-        tab: Project attributes
+          label_disable_all: Отключить всё
+          label_enable_all: Включить всё
+        description: Выберите аттрибуты проекта, которые вы хотели бы видеть в этом типе работ. Включенные аттрибуты отображаются на отдельной вкладке пакета работ. Пользователи с необходимыми правами могут видеть и редактировать эти аттрибуты.
+        filter: Поиск по названию
+        tab: Аттрибуты проекта
       projects:
         enable_all: Использовать во всех проектах
         select_projects: Выберите проекты
@@ -1524,6 +1520,16 @@ ru:
     print_hint: Это позволит напечатать содержимое этой страницы wiki без каких-либо навигационных меню.
     index:
       no_results_content_text: Добавить новую wiki-страницу
+
+  field_group_permissions:
+    matrix_caption: "Строки - статусы, столбцы - роли пользователя в пакете работ. \"Скрыть\" - не показывать секцию для роли, \"Только-чтение\" - запрещает редактирование полей секции."
+    dialog_title: "Права доступа к секции: %{name}"
+    menu_action: "Права доступа"
+    header_meta_group: "Заголовок (тип, название, статус, описание работы)"
+    header_meta_group_caption: "Состав полей секции-заголовка (тип, название, статус, описание работы) не может быть изменен, но можно настроить доступ."
+    hide: "Скрыто"
+    read_only: "Только-чтение"
+
   workflows:
     copies:
       form:
@@ -2936,7 +2942,7 @@ ru:
   button_add_sub_item: Добавить подпроект
   button_add_member: Добавить участника
   button_add_watcher: Добавить наблюдателя
-  button_all_filters: All filters
+  button_all_filters: Все фильтры
   button_annotate: Комментировать
   button_apply: Применить
   button_apply_changes: Применить изменения
@@ -3656,11 +3662,11 @@ ru:
     no_results_text: Нет результатов
   header:
     project_select_component:
-      all_projects: All projects
-      favorites: Favorites
-      leave_project: Leave project
-      no_favorite_projects: You have no favorite projects.
-      title: Projects
+      all_projects: Все проекты
+      favorites: Избрынные
+      leave_project: Покинуть проект
+      no_favorite_projects: У Вас нет избранных проектоы.
+      title: Проекты
   toggle_switch:
     label_on: Включено
     label_off: Выключено
