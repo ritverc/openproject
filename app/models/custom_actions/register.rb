@@ -53,7 +53,8 @@ module CustomActions::Register
         CustomActions::Conditions::Status,
         CustomActions::Conditions::Role,
         CustomActions::Conditions::Type,
-        CustomActions::Conditions::Project
+        CustomActions::Conditions::Project,
+        CustomActions::Conditions::WorkPackageRole
       ]
     end
   end
