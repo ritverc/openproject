@@ -70,6 +70,14 @@ module Users
       helpers.format_time user.created_at
     end
 
+    def department
+      user.department&.name || ""
+    end
+
+    def direct_manager
+      user.direct_manager&.name || ""
+    end
+
     def status
       helpers.full_user_status user
     end

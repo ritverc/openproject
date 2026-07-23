@@ -21,7 +21,7 @@
 #++
 ---
 ru:
-  label_user_attributes_plural: User attributes
+  label_user_attributes_plural: Атрибуты пользователя
   no_results_title_text: Показать нечего.
   activities:
     index:
@@ -46,7 +46,7 @@ ru:
         commented: прокомментировано
         internal_comment: Внутренний комментарий
         internal_journal: Внутренние комментарии видны ограниченной группе членов.
-        unsaved_changes_confirmation_message: Are you sure you want to dismiss your comment? The content that you have written will be lost.
+        unsaved_changes_confirmation_message: Вы действительно хотите отменить свой комментарий? Изменения будут утеряны.
         internal_comment_confirmation:
           title: Сделать этот комментарий публичным?
           heading: Сделать этот комментарий публичным?
@@ -2010,7 +2010,7 @@ ru:
       user:
         admin: Администратор
         auth_source: Источник аутентификации
-        department: Department
+        department: Подразделение
         direct_manager: Непосредственный руководитель
         ldap_auth_source: Подключение к LDAP
         identity_url: URL идентификации
@@ -5581,17 +5581,17 @@ ru:
     user_custom_fields:
       header_component:
         attribute_filter:
-          label: Filter by attribute name…
+          label: Фильтр по названию атрибута…
         heading_description: These user attributes appear on user profiles and information cards. You can add new attributes, group them into sections and re-order them.
-      heading: User attributes
-      label_new_attribute: User attribute
-      label_new_section: Section
-      label_untitled_section: User attributes
+      heading: Атрибуты пользователя
+      label_new_attribute: Атрибут пользователя
+      label_new_section: Секция
+      label_untitled_section: Атрибуты пользователя
       new:
-        heading: New attribute
+        heading: Новый атрибут
       tabs:
-        attributes: Attributes
-        semantic_keys: Mapped attributes
+        attributes: Атрибуты
+        semantic_keys: Сопоставление атрибутов
       semantic_keys:
         description: Some attributes can do more than store information — the app uses them to power specific features. Choose which attribute to use for each purpose below. Each attribute can be used for only one purpose, and each purpose for only one attribute.
         descriptions:

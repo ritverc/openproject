@@ -31,6 +31,7 @@
 module Users
   class TableComponent < ::TableComponent
     columns :login, :firstname, :lastname, :mail, :admin, :created_at, :last_login_on
+    sortable_columns :login, :firstname, :lastname, :mail, :admin, :created_at, :last_login_on, :department, :direct_manager
     options :current_user
 
     def before_render
@@ -47,7 +48,7 @@ module Users
     end
 
     def initial_sort
-      %i[id asc]
+      %i[login asc]
     end
 
     def headers

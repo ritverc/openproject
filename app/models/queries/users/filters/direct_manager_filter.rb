@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# -- copyright
+#-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,20 +26,49 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-# ++
+#++
 
-class Queries::Users::Selects::Default < Queries::Selects::Base
-  KEYS = %i[login firstname lastname mail admin created_at last_login_on department direct_manager].freeze
-
+class Queries::Users::Filters::DirectManagerFilter < Queries::Users::Filters::UserFilter
   def self.key
-    /\A(#{Regexp.union(KEYS.map(&:to_s))})\z/
+    :direct_manager
   end
 
-  def self.all_available
-    KEYS.map { new(it) }
+  def type
+    :list_optional
   end
 
-  def caption
-    User.human_attribute_name(attribute)
+  def human_name
+    User.human_attribute_name(:direct_manager)
+  end
+
+  def allowed_values
+    @allowed_values ||= ::Principal.where.not(type: %w[DeletedUser AnonymousUser SystemUser]).pluck(:id).map { |p| [p, p.to_s] }
+  end
+
+  def where
+    case operator
+    when "="
+      "users.direct_manager_id IN (#{values.map(&:to_i).join(',')})"
+    when "!"
+      "users.direct_manager_id NOT IN (#{values.map(&:to_i).join(',')}) OR users.direct_manager_id IS NULL"
+    when "*"
+      "users.direct_manager_id IS NOT NULL"
+    when "!*"
+      "users.direct_manager_id IS NULL"
+    end
+  end
+
+  def autocomplete_options
+    {
+      component: "opce-user-autocompleter",
+      resource: "principals",
+      url: ::API::V3::Utilities::PathHelper::ApiV3Path.principals,
+      filters: [{ name: "type", operator: "=", values: %w[User Group PlaceholderUser] },
+                { name: "status", operator: "!", values: [Principal.statuses[:locked].to_s] }],
+      searchKey: "any_name_attribute",
+      inputValue: values,
+      bindValue: "id"
+    }
   end
 end
+

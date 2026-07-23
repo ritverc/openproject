@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# -- copyright
+#-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,20 +26,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-# ++
+#++
 
-class Queries::Users::Selects::Default < Queries::Selects::Base
-  KEYS = %i[login firstname lastname mail admin created_at last_login_on department direct_manager].freeze
+class Queries::Users::Orders::DepartmentOrder < Queries::Orders::Base
+  self.model = User
 
   def self.key
-    /\A(#{Regexp.union(KEYS.map(&:to_s))})\z/
+    :department
   end
 
-  def self.all_available
-    KEYS.map { new(it) }
+  private
+
+  def order(scope)
+    order_string = "departments_users.lastname"
+
+    order_string += " DESC" if direction == :desc
+
+    scope.order(order_string)
   end
 
-  def caption
-    User.human_attribute_name(attribute)
+  def left_outer_joins
+    :departments
   end
 end
+
