@@ -54,7 +54,7 @@ module CustomFields::Inputs::Base::Autocomplete::UserQueryUtils
 
   def filters
     filters = [
-      { name: "type", operator: "=", values: ["User", "Group", "PlaceholderUser"] },
+      { name: "type", operator: "=", values: type_filter_values },
       { name: "status", operator: "!", values: [Principal.statuses["locked"].to_s] }
     ]
 
@@ -68,6 +68,13 @@ module CustomFields::Inputs::Base::Autocomplete::UserQueryUtils
     end
 
     filters
+  end
+
+  # The "user" attribute on a User is intended to hold a list of users and
+  # groups. Placeholder users are excluded from the autocompleter for the
+  # User-customized case so admins cannot pick a placeholder there.
+  def type_filter_values
+    @object.is_a?(User) ? %w[User Group] : %w[User Group PlaceholderUser]
   end
 
   def user_field_with_role_assignment?

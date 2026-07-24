@@ -186,4 +186,76 @@ RSpec.describe CustomActions::Actions::Responsible do
       expect(work_package.responsible_id).to eq(assignee.id)
     end
   end
+
+  # Mirror of the "user custom field value" block in assigned_to_spec, for the
+  # "user_attribute_<id>" marker that reads the executing user's value of a
+  # UserCustomField of format "user" (a user attribute).
+  describe "user attribute custom field value" do
+    shared_let(:source_user) { create(:user) }
+    shared_let(:user_attribute_cf) { create(:user_custom_field, :user) }
+    let(:marker) { "user_attribute_#{user_attribute_cf.id}" }
+    let(:work_package) { build_stubbed(:work_package) }
+
+    subject { described_class.new([marker]) }
+
+    context "when the executing user has a value for the attribute" do
+      let(:current_user) do
+        create(:user, custom_values: [build(:custom_value,
+                                            custom_field: user_attribute_cf,
+                                            value: source_user.id.to_s)])
+      end
+
+      before { login_as current_user }
+
+      it "offers the user attribute as a selectable value" do
+        expect(subject.associated)
+          .to include([marker, I18n.t("custom_actions.actions.assigned_to.user_attribute_value",
+                                      name: user_attribute_cf.name)])
+      end
+
+      it "preserves the marker as the stored value" do
+        expect(subject.values).to eq([marker])
+      end
+
+      it "assigns the executing user's attribute value" do
+        subject.apply(work_package)
+        expect(work_package.responsible_id).to eq(source_user.id)
+      end
+    end
+
+    context "when the executing user has no value for the attribute" do
+      let(:current_user) { create(:user) }
+
+      before { login_as current_user }
+
+      it "assigns nil" do
+        subject.apply(work_package)
+        expect(work_package.responsible_id).to be_nil
+      end
+    end
+
+    context "when the executing user is anonymous" do
+      before { login_as User.anonymous }
+
+      it "assigns nil" do
+        subject.apply(work_package)
+        expect(work_package.responsible_id).to be_nil
+      end
+    end
+
+    context "when the referenced user attribute no longer exists" do
+      let(:current_user) { create(:user) }
+
+      before do
+        login_as current_user
+        user_attribute_cf.destroy
+      end
+
+      it "is rejected by allowed-value validation" do
+        errors = ActiveModel::Errors.new(CustomAction.new)
+        described_class.new([marker]).validate(errors)
+        expect(errors.symbols_for(:actions)).to include(:inclusion)
+      end
+    end
+  end
 end

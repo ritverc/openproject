@@ -84,7 +84,7 @@ RSpec.describe OpenProject::CustomFieldFormat do
     context "for a 'User' class" do
       it_behaves_like "custom field formats",
                       "User",
-                      %w[string text int float list date bool]
+                      %w[string text int float list date bool user]
     end
 
     context "for a 'Group' class" do
@@ -130,7 +130,7 @@ RSpec.describe OpenProject::CustomFieldFormat do
     context "for a 'User' class" do
       it_behaves_like "custom field formats",
                       "User",
-                      %w[string text int float list date bool hierarchy]
+                      %w[string text int float list date bool user hierarchy]
     end
 
     context "for a 'Group' class" do

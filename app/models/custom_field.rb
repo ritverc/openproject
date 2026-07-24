@@ -430,7 +430,7 @@ class CustomField < ApplicationRecord
 
   def possible_users(obj)
     project = deduce_project(obj)
-    deduce_principals(project)
+    deduce_principals(project, customized: obj)
   end
 
   def possible_user_values_options(obj)
@@ -459,11 +459,17 @@ class CustomField < ApplicationRecord
     end
   end
 
-  def deduce_principals(project)
+  def deduce_principals(project, customized: nil)
     if user_field_with_role_assignment?
       Principal.visible
     elsif project&.persisted?
       project.principals
+    elsif customized.is_a?(User)
+      # A User-customized "user" field has no project context; fall back to
+      # all principals visible to the current user so that admins (and users
+      # with the global view_all_principals permission) can pick any user or
+      # group, matching what the principals autocompleter offers.
+      Principal.visible
     else
       Principal.in_visible_project_or_me(User.current)
     end

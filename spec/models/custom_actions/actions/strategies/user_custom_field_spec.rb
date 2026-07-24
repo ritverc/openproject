@@ -152,6 +152,52 @@ module CustomActions
 
             expect(single_user_work_package.send("custom_field_#{user_cf.id}")).to eq(user)
           end
+
+          # The "user_attribute_<id>" marker reads the executing user's value of
+          # a UserCustomField of format "user" (a user attribute), mirroring the
+          # "current_user" marker.
+          describe "user attribute value markers" do
+            shared_let(:attribute_value_user) { create(:user) }
+            shared_let(:user_attribute_cf) { create(:user_custom_field, :user) }
+            let(:attribute_marker) { "user_attribute_#{user_attribute_cf.id}" }
+            let(:current_user) do
+              create(:user, custom_values: [build(:custom_value,
+                                                  custom_field: user_attribute_cf,
+                                                  value: attribute_value_user.id.to_s)])
+            end
+
+            before { login_as current_user }
+
+            it "offers the user attribute as a selectable value" do
+              keys = user_cf_action.associated.map(&:first)
+              expect(keys).to include(attribute_marker)
+            end
+
+            it "preserves the marker as the stored value" do
+              user_cf_action.values = attribute_marker
+              expect(user_cf_action.values).to eq([attribute_marker])
+            end
+
+            it "copies the executing user's attribute value onto the field" do
+              user_cf_action.values = attribute_marker
+
+              user_cf_action.apply(single_user_work_package)
+
+              expect(single_user_work_package.send("custom_field_#{user_cf.id}")).to eq(attribute_value_user)
+            end
+
+            context "when the executing user is anonymous" do
+              before { login_as User.anonymous }
+
+              it "clears the field" do
+                user_cf_action.values = attribute_marker
+
+                user_cf_action.apply(single_user_work_package)
+
+                expect(single_user_work_package.send("custom_field_#{user_cf.id}")).to be_nil
+              end
+            end
+          end
         end
 
         # The core of the "save & restore a person on status change" workflow: a

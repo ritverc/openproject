@@ -64,7 +64,7 @@ OpenProject::CustomFieldFormat.tap do |formats|
                    formatter: "CustomValue::BoolStrategy")
   formats.register("user",
                    label: Proc.new { User.model_name.human },
-                   only: %w(WorkPackage TimeEntry Version Project),
+                   only: %w(WorkPackage TimeEntry Version Project User),
                    edit_as: "list",
                    order: 9,
                    multi_value_possible: true,

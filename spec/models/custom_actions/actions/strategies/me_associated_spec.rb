@@ -241,4 +241,81 @@ RSpec.describe CustomActions::Actions::Strategies::MeAssociated do
       end
     end
   end
+
+  # The "user_attribute_<id>" marker reads the executing user's value of a
+  # UserCustomField of format "user" (a user attribute), mirroring the
+  # "current_user" marker that reads from User.current.
+  describe "user attribute custom field value" do
+    shared_let(:attribute_value_user) { create(:user) }
+    shared_let(:user_attribute_cf) { create(:user_custom_field, :user) }
+    let(:marker) { "user_attribute_#{user_attribute_cf.id}" }
+    let(:work_package) { build_stubbed(:work_package) }
+
+    context "when the executing user has a value for the attribute" do
+      let(:current_user) do
+        create(:user, custom_values: [build(:custom_value,
+                                            custom_field: user_attribute_cf,
+                                            value: attribute_value_user.id.to_s)])
+      end
+
+      before { login_as current_user }
+
+      it "offers the user attribute as a selectable value" do
+        expect(subject.associated)
+          .to include([marker, I18n.t("custom_actions.actions.assigned_to.user_attribute_value",
+                                      name: user_attribute_cf.name)])
+      end
+
+      it "preserves the marker as the stored value" do
+        subject.values = [marker]
+        expect(subject.values).to eq([marker])
+      end
+
+      it "resolves the marker to the executing user's attribute value" do
+        result = subject.send(:transformed_value_with_wp, marker, work_package)
+        expect(result).to eq(attribute_value_user.id)
+      end
+    end
+
+    context "when the executing user is anonymous" do
+      before { login_as User.anonymous }
+
+      it "resolves the marker to nil" do
+        result = subject.send(:transformed_value_with_wp, marker, work_package)
+        expect(result).to be_nil
+      end
+    end
+
+    context "when the executing user has no value for the attribute" do
+      let(:current_user) { create(:user) }
+
+      before { login_as current_user }
+
+      it "resolves the marker to nil" do
+        result = subject.send(:transformed_value_with_wp, marker, work_package)
+        expect(result).to be_nil
+      end
+    end
+
+    context "when the referenced user attribute no longer exists" do
+      let(:current_user) { create(:user) }
+
+      before do
+        login_as current_user
+        user_attribute_cf.destroy
+      end
+
+      it "resolves the marker to nil" do
+        result = subject.send(:transformed_value_with_wp, marker, work_package)
+        expect(result).to be_nil
+      end
+
+      it "is rejected by allowed-value validation" do
+        errors = ActiveModel::Errors.new(CustomAction.new)
+        subject.values = [marker]
+        subject.validate errors
+        expect(errors.symbols_for(:actions)).to include(:inclusion)
+      end
+    end
+  end
 end

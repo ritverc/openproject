@@ -639,7 +639,10 @@ ru:
       name: Действия
       add: Добавить действие
       assigned_to:
-        executing_user_value: "(назначить пользователю-исполнителю)"
+        executing_user_value: "(пользователь-исполнитель)"
+        author_value: "(автор задачи)"
+        field_value: "(поле: %{name})"
+        user_attribute_value: "(атрибут: %{name})"
     conditions: Условия
     work_package_role_condition:
       name: "Роль пользователя в задаче"

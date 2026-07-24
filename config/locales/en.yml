@@ -675,6 +675,7 @@ en:
         executing_user_value: "(Assign to executing user)"
         author_value: "(Assign to work package author)"
         field_value: "(Use value of: %{name})"
+        user_attribute_value: "user attribute: %{name}"
     conditions: "Conditions"
     work_package_role_condition:
       name: "User role in work package"
