@@ -676,6 +676,12 @@ en:
         author_value: "(Assign to work package author)"
         field_value: "(Use value of: %{name})"
     conditions: "Conditions"
+    work_package_role_condition:
+      name: "User role in work package"
+      values:
+        assignee: "Assignee"
+        responsible: "Responsible"
+        author: "Author"      
     plural: "Custom actions"
     new: "New custom action"
     edit: "Edit custom action %{name}"
