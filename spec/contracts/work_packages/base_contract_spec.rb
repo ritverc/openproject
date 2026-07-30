@@ -1859,5 +1859,49 @@ RSpec.describe WorkPackages::BaseContract do
     end
   end
 
+  describe '#user_was_or_is_assignee?' do
+    let(:group) { create(:group) }
+    let(:user) { create(:user) }
+    let(:work_package) { create(:work_package, assigned_to: group) }
+
+    context 'when the assignee is a group the user belongs to' do
+      before do
+	group.users << user
+      end
+
+      it 'returns true' do
+	expect(contract.send(:user_was_or_is_assignee?)).to be true
+      end
+    end
+
+    context 'when the assignee is a group the user does NOT belong to' do
+      it 'returns false' do
+	expect(contract.send(:user_was_or_is_assignee?)).to be false
+      end
+    end
+
+    context 'when the assignee is the user directly' do
+      before do
+	work_package.update(assigned_to: user)
+      end
+
+      it 'returns true' do
+	expect(contract.send(:user_was_or_is_assignee?)).to be true
+      end
+    end
+
+    context 'when assignee changed from group to another principal' do
+      before do
+	group.users << user
+	work_package.update(assigned_to: create(:user))
+      end
+
+      it 'considers the previous assignee (was)' do
+	# assigned_to_id_was is the group's id
+	expect(contract.send(:user_was_or_is_assignee?)).to be true
+      end
+    end
+  end
+
   it_behaves_like "contract reuses the model errors"
 end

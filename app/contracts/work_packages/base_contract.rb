@@ -786,7 +786,17 @@ module WorkPackages
     end
 
     def user_was_or_is_assignee?
-      model.assigned_to_id_changed? ? model.assigned_to_id_was == user.id : model.assigned_to_id == user.id
+      if model.assigned_to_id_changed?
+	user_is_assigned_principal?(model.assigned_to_id_was)
+      else
+	user_is_assigned_principal?(model.assigned_to_id)
+      end
+    end
+
+    def user_is_assigned_principal?(assigned_to_id)
+      return false if assigned_to_id.nil?
+      return true if assigned_to_id == user.id
+      user.group_ids.include?(assigned_to_id)
     end
 
     def user_is_author?
