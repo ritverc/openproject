@@ -28,37 +28,15 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-module CustomActions::Register
-  class << self
-    def actions
-      [
-        CustomActions::Actions::AssignedTo,
-        CustomActions::Actions::Responsible,
-        CustomActions::Actions::Status,
-        CustomActions::Actions::Priority,
-        CustomActions::Actions::CustomField,
-        CustomActions::Actions::Type,
-        CustomActions::Actions::Project,
-        CustomActions::Actions::Notify,
-        CustomActions::Actions::InviteViewer,
-        CustomActions::Actions::InviteEditor,
-        CustomActions::Actions::InviteCommentor,
-        CustomActions::Actions::DoneRatio,
-        CustomActions::Actions::EstimatedHours,
-        CustomActions::Actions::StartDate,
-        CustomActions::Actions::DueDate,
-        CustomActions::Actions::Date
-      ]
-    end
+# Invites the selected principals (users, groups and dynamic user-field value
+# sources) to the work package as viewers, using the builtin work package viewer
+# role. See CustomActions::Actions::Invite for the shared behaviour.
+class CustomActions::Actions::InviteViewer < CustomActions::Actions::Invite
+  def self.key
+    :invite_viewer
+  end
 
-    def conditions
-      [
-        CustomActions::Conditions::Status,
-        CustomActions::Conditions::Role,
-        CustomActions::Conditions::Type,
-        CustomActions::Conditions::Project,
-        CustomActions::Conditions::WorkPackageRole
-      ]
-    end
+  def self.share_role_builtin
+    Role::BUILTIN_WORK_PACKAGE_VIEWER
   end
 end

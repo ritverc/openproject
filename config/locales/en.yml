@@ -672,10 +672,16 @@ en:
       name: "Actions"
       add: "Add action"
       assigned_to:
-        executing_user_value: "(Assign to executing user)"
-        author_value: "(Assign to work package author)"
-        field_value: "(Use value of: %{name})"
+        executing_user_value: "(executing user)"
+        author_value: "(work package author)"
+        field_value: "(value of: %{name})"
         user_attribute_value: "user attribute: %{name}"
+      invite_viewer:
+        label: "Invite as viewer"
+      invite_editor:
+        label: "Invite as editor"
+      invite_commentor:
+        label: "Invite as commentor"
     conditions: "Conditions"
     work_package_role_condition:
       name: "User role in work package"
