@@ -29,36 +29,72 @@
 #++
 
 class CustomActions::Actions::Notify < CustomActions::Actions::Base
-  include CustomActions::Actions::Strategies::Associated
+  include CustomActions::Actions::Strategies::MeAssociated
 
+  # Notify is a multi-valued action. Besides selecting concrete principals
+  # (users and groups), the value may be any of the dynamic markers provided
+  # by the MeAssociated strategy, mirroring the assigned_to and responsible
+  # actions:
+  #   - "current_user"            -> the executing user
+  #   - "work_package_author"     -> the work package's author
+  #   - "assigned_to"             -> the work package's assignee
+  #   - "responsible"             -> the work package's accountable
+  #   - "user_custom_field_<id>"  -> the value of a user-format work package
+  #                                  custom field
+  #   - "user_attribute_<id>"     -> the executing user's value of a
+  #                                  user-format user attribute
+  # At apply time each marker is resolved against the work package and the
+  # resulting principals are turned into mention syntax ("user#<id>" /
+  # "group#<id>") written into the work package's comment.
   def apply(work_package)
-    comment = principals.where(id: values).map do |p|
-      prefix = if p.is_a?(User)
-                 "user"
-               else
-                 "group"
-               end
-
-      "#{prefix}##{p.id}"
+    comment = resolved_principals(work_package).map do |principal|
+      prefix = principal.is_a?(User) ? "user" : "group"
+      "#{prefix}##{principal.id}"
     end.join(", ")
 
     work_package.journal_notes = comment
   end
 
-  def associated
-    principals
-      .map { |u| [u.id, u.name] }
+  def available_principles
+    principals.map { |u| [u.id, u.name] }
   end
 
-  def self.key
-    :notify
+  # Render through the user autocompleter branch of the admin form so that
+  # the dynamic value sources (author, user custom fields, ...) are offered
+  # as additional selectable options, just like assigned_to and responsible.
+  def type
+    :user
   end
 
   def multi_value?
     true
   end
 
+  # Notify has no "own" target field, so none of the dynamic value sources
+  # needs to be excluded (MeAssociated#self_source_marker returns nil by
+  # default, which is exactly what we want here).
+
+  # Overridden because notify is multi-valued: the executing-user marker may
+  # appear at any position among the selected values, not only as the first
+  # one (which the default MeAssociated#has_me_value? assumes).
+  def has_me_value?
+    values.include?(current_user_value_key)
+  end
+
+  def self.key
+    :notify
+  end
+
   private
+
+  # Resolve every selected value (a concrete id or a dynamic marker) against
+  # the work package and return the matching principals. Markers that cannot
+  # be resolved (e.g. an unset user custom field or an anonymous executing
+  # user) yield nil and are skipped.
+  def resolved_principals(work_package)
+    ids = values.filter_map { |value| transformed_value_with_wp(value, work_package) }
+    principals.where(id: ids)
+  end
 
   def principals
     Principal
