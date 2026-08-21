@@ -47,7 +47,7 @@ class FieldGroupPermission < ApplicationRecord
   # but can still be hidden / made read-only through the access matrix by
   # configuring this meta group.
   HEADER_GROUP_KEY = "header"
-  HEADER_GROUP_MEMBERS = %w[subject type status].freeze
+  HEADER_GROUP_MEMBERS = %w[subject type description].freeze
 
   belongs_to :type, class_name: "::Type"
   belongs_to :status
