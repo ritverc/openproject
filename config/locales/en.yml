@@ -671,6 +671,8 @@ en:
     actions:
       name: "Actions"
       add: "Add action"
+      set_if_empty: "set if empty"
+      set_if_empty_hint: "Set if empty (заполнить если пусто) — the value is applied only when the work package field is currently empty."
       assigned_to:
         executing_user_value: "(executing user)"
         author_value: "(work package author)"

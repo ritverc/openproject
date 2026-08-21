@@ -45,7 +45,7 @@ module CustomActions::Actions::Strategies::Associated
     end
   end
 
-  def apply(work_package)
+  def apply_value(work_package)
     work_package.send(:"#{key}_id=", values.first)
   end
 

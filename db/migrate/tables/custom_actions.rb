@@ -26,7 +26,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-# ++
+#++
 
 require_relative "base"
 
@@ -35,6 +35,10 @@ class Tables::CustomActions < Tables::Base
     create_table migration do |t| # rubocop:disable Rails/CreateTableWithTimestamps
       t.string :name
       t.text :actions
+      # Serialized Hash of per-action admin options keyed by action key, e.g.
+      #   { "assigned_to" => { "set_if_empty" => false } }
+      # See CustomAction#action_options and the AddActionOptionsToCustomActions migration.
+      t.text :action_options
       t.text :description
       t.integer :position
     end

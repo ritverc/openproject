@@ -789,6 +789,32 @@ input[readonly].-clickable
     top: -1px
     position: relative
 
+// Inline group of per-action option checkboxes rendered INSIDE a custom
+// action's value field container (form--field-container), immediately next to
+// the value input. The container is a flex row, so the group must NOT grow -
+// otherwise it would squeeze the input - and must shrink-to-fit its content
+// while wrapping gracefully on narrow viewports.
+.form--action-options
+  display: inline-flex
+  flex-grow: 0
+  flex-shrink: 0
+  flex-wrap: wrap
+  align-items: center
+  gap: 0.25rem 0.5rem
+  margin-left: 0.5rem
+  align-self: center
+
+  > .form--check-box
+    display: inline-flex
+    align-items: center
+    gap: 0.325rem
+    margin: 0
+    white-space: nowrap
+
+    span
+      font-size: var(--body-font-size)
+      color: var(--body-font-color)
+
 .form--label-with-radio-button
   display: block
   clear: both

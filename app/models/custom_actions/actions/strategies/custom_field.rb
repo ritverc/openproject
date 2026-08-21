@@ -29,7 +29,7 @@
 #++
 
 module CustomActions::Actions::Strategies::CustomField
-  def apply(work_package)
+  def apply_value(work_package)
     if work_package.respond_to?(custom_field.attribute_setter)
       set_custom_field_value(work_package)
       validate_custom_field(work_package)

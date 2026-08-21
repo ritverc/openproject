@@ -28,40 +28,19 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-module CustomActions::Actions::Strategies::Date
-  def values=(values)
-    super(Array(values).map { |v| to_date_or_nil(v) }.uniq)
-  end
-
-  def type
-    :date_property
-  end
-
-  def apply_value(work_package)
-    accessor = :"#{self.class.key}="
-    if work_package.respond_to? accessor
-      work_package.send(accessor, date_to_apply)
-    end
-  end
-
-  private
-
-  def date_to_apply
-    if values.first == "%CURRENT_DATE%"
-      Date.today
-    else
-      values.first
-    end
-  end
-
-  def to_date_or_nil(value)
-    case value
-    when nil, "%CURRENT_DATE%"
-      value
-    else
-      value.to_date
-    end
-  rescue TypeError, ArgumentError
-    nil
+# Adds an +action_options+ text column to +custom_actions+ that persists the
+# per-action admin-toggleable flag ("set if empty") introduced by the custom
+# actions admin form.
+#
+# The column stores a serialized Hash keyed by action key:
+#
+#   { "assigned_to" => { "set_if_empty" => false }, ... }
+#
+# This keeps the flag in a dedicated, queryable column rather than mixing
+# it into the existing YAML-serialized +actions+ column (which still holds
+# only the action values, as before).
+class AddActionOptionsToCustomActions < ActiveRecord::Migration[8.1]
+  def change
+    add_column :custom_actions, :action_options, :text
   end
 end

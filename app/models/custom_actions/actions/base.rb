@@ -29,16 +29,35 @@
 #++
 
 class CustomActions::Actions::Base
-  attr_reader :values
+  attr_reader :values, :set_if_empty
 
   DEFAULT_PRIORITY = 100
 
-  def initialize(values = [])
+  # +set_if_empty+ (admin checkbox "set if empty" / "заполнить если пусто"):
+  # when true, the action's value is only applied to a work package if the
+  # work package does not already have a value for the targeted attribute
+  # (see +#apply+ / +#work_package_value_present?+).
+  #
+  # Options are accepted via a trailing +options+ Hash (rather than keyword
+  # arguments) so that historical callers which pass an arbitrary Hash -
+  # such as +AssignedTo.new(value: nil)+ in the specs - keep working: Ruby
+  # routes such keywords into the trailing Hash positional when the method
+  # does not declare explicit keyword parameters.
+  def initialize(values = [], options = {})
     self.values = values
+    self.set_if_empty = options[:set_if_empty]
   end
 
   def values=(values)
     @values = Array(values)
+  end
+
+  def set_if_empty=(value)
+    @set_if_empty = ActiveModel::Type::Boolean.new.cast(value)
+  end
+
+  def set_if_empty?
+    !!set_if_empty
   end
 
   def allowed_values
@@ -55,8 +74,45 @@ class CustomActions::Actions::Base
     raise SubclassResponsibilityError
   end
 
-  def apply(_work_package)
+  # Public entry point invoked by +UpdateWorkPackageService+.
+  #
+  # Honors the "set if empty" admin option: when +set_if_empty?+ is true, the
+  # action's value is applied only if the work package does not already have a
+  # value for the targeted attribute. Subclasses implement the actual mutation
+  # in +#apply_value+ (renamed from the previous +#apply+ override point).
+  def apply(work_package)
+    return if set_if_empty? && work_package_value_present?(work_package)
+
+    apply_value(work_package)
+  end
+
+  # Subclasses implement the actual work package mutation here.
+  def apply_value(_work_package)
     raise SubclassResponsibilityError
+  end
+
+  # Returns true if the work package already has a value for the attribute
+  # this action targets. Used by +#apply+ to honor the "set if empty" option.
+  #
+  # The default implementation prefers the +<key>_id+ foreign-key reader (so
+  # associated attributes do not trigger an extra DB query to load the related
+  # object) and falls back to the +<key>+ reader. Strategies whose target
+  # attribute is not named after +key+ (e.g. custom fields, whose getter is
+  # +custom_field_<id>+) still work because they expose a +<key>+ reader.
+  def work_package_value_present?(work_package)
+    id_reader = :"#{key}_id"
+    if work_package.respond_to?(id_reader)
+      return value_present?(work_package.send(id_reader))
+    end
+
+    reader = key
+    if work_package.respond_to?(reader)
+      return value_present?(work_package.send(reader))
+    end
+
+    # Unknown attribute - be conservative and treat it as empty so the action
+    # still applies (preserving the previous, unconditional behavior).
+    false
   end
 
   def human_name
@@ -115,6 +171,17 @@ class CustomActions::Actions::Base
       errors.add :actions,
                  :only_one_allowed,
                  name: human_name
+    end
+  end
+
+  # Whether a raw attribute value read off a work package should be considered
+  # "already filled in" for the purposes of the "set if empty" option.
+  def value_present?(value)
+    case value
+    when nil then false
+    when String then value.strip.present?
+    when Array then value.any? { |v| value_present?(v) }
+    else true
     end
   end
 end

@@ -46,7 +46,7 @@ class CustomActions::Actions::Notify < CustomActions::Actions::Base
   # At apply time each marker is resolved against the work package and the
   # resulting principals are turned into mention syntax ("user#<id>" /
   # "group#<id>") written into the work package's comment.
-  def apply(work_package)
+  def apply_value(work_package)
     comment = resolved_principals(work_package).map do |principal|
       prefix = principal.is_a?(User) ? "user" : "group"
       "#{prefix}##{principal.id}"

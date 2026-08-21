@@ -104,7 +104,7 @@ class CustomActions::Actions::Invite < CustomActions::Actions::Base
   #   - updates the existing share to the action's role otherwise,
   # and skips the regular :share_work_packages permission check entirely, so the
   # action executes regardless of the current user's rights.
-  def apply(work_package)
+  def apply_value(work_package)
     role = WorkPackageRole.find_by(builtin: self.class.share_role_builtin)
     return unless role
 

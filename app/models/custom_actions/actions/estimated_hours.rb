@@ -35,7 +35,7 @@ class CustomActions::Actions::EstimatedHours < CustomActions::Actions::Base
     :estimated_hours
   end
 
-  def apply(work_package)
+  def apply_value(work_package)
     work_package.estimated_hours = values.first
   end
 

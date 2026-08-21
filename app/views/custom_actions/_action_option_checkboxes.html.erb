@@ -1,0 +1,20 @@
+<%#
+  Per-action admin option checkbox, rendered inside the value field's
+  +form--field-container+, immediately to the right of the value input.
+
+  - "set if empty" (заполнить если пусто): the value is only applied to a work
+    package when its target attribute is currently empty
+    (see CustomActions::Actions::Base#apply).
+
+  The flag is persisted into the +action_options+ DB column on the
+  CustomAction record (see CustomAction#capture_action_options).
+%>
+<span class="form--action-options">
+  <label class="form--check-box -inline"
+         title="<%= t('custom_actions.actions.set_if_empty_hint') %>">
+    <%= check_box_tag "custom_action[action_options][#{action.key}][set_if_empty]",
+                      "1",
+                      action.set_if_empty? %>
+    <span><%= t("custom_actions.actions.set_if_empty") %></span>
+  </label>
+</span>

@@ -97,7 +97,9 @@ class PermittedParams
       .require(:custom_action)
       .permit(*self.class.permitted_attributes[:custom_action])
 
-    whitelisted.merge(params[:custom_action].slice(:actions, :conditions).permit!)
+    # +action_options+ carries the admin-toggled "make mandatory" and
+    # "set if empty" flags per action key (see CustomActions::BaseService).
+    whitelisted.merge(params[:custom_action].slice(:actions, :action_options, :conditions).permit!)
   end
 
   def custom_field_type

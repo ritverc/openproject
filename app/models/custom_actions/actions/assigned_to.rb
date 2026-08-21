@@ -48,7 +48,7 @@ class CustomActions::Actions::AssignedTo < CustomActions::Actions::Base
       .map { |u| [u.id, u.name] }
   end
 
-  def apply(work_package)
+  def apply_value(work_package)
     work_package.assigned_to_id = transformed_value_with_wp(values.first, work_package)
   end
 

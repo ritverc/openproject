@@ -48,7 +48,7 @@ class CustomActions::Actions::Responsible < CustomActions::Actions::Base
     Principal
   end
 
-  def apply(work_package)
+  def apply_value(work_package)
     work_package.responsible_id = transformed_value_with_wp(values.first, work_package)
   end
 

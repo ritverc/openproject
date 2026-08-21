@@ -28,40 +28,16 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-module CustomActions::Actions::Strategies::Date
-  def values=(values)
-    super(Array(values).map { |v| to_date_or_nil(v) }.uniq)
-  end
-
-  def type
-    :date_property
-  end
-
-  def apply_value(work_package)
-    accessor = :"#{self.class.key}="
-    if work_package.respond_to? accessor
-      work_package.send(accessor, date_to_apply)
-    end
-  end
-
-  private
-
-  def date_to_apply
-    if values.first == "%CURRENT_DATE%"
-      Date.today
-    else
-      values.first
-    end
-  end
-
-  def to_date_or_nil(value)
-    case value
-    when nil, "%CURRENT_DATE%"
-      value
-    else
-      value.to_date
-    end
-  rescue TypeError, ArgumentError
-    nil
+module CustomActionsHelper
+  # Renders the per-action admin option checkbox ("set if empty") for the
+  # given action. Intended to be rendered immediately after the action's
+  # value input, inside the same +form--field-container+, so the checkbox
+  # sits right next to the value field.
+  #
+  # The flag is persisted into the +action_options+ DB column on the
+  # CustomAction record (see CustomAction#capture_action_options).
+  def render_action_option_checkboxes(action)
+    render partial: "custom_actions/action_option_checkboxes",
+           locals: { action: action }
   end
 end

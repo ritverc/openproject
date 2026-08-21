@@ -55,6 +55,7 @@
 
   <div id="custom-actions-form--active-actions">
     <% @custom_action.all_actions.each do |action| %>
+      <% input_name = "custom_action[actions][#{action.key}]" %>
       <section class="hide-section"
                data-hide-sections-target="section"
                data-name="<%= action.key %>"
@@ -62,7 +63,6 @@
         <div class="form--field">
           <%= styled_label_tag("custom_action_actions_#{action.key}", action.human_name, class: "-top") %>
 
-          <% input_name = "custom_action[actions][#{action.key}]" %>
           <% if %i(associated_property boolean user project).include?(action.type) %>
             <div class="form--field-container">
               <div class="form--select-container -middle">
@@ -121,12 +121,14 @@
                                             } %>
                 <% end %>
               </div>
+              <%= render_action_option_checkboxes(action) %>
             </div>
           <% elsif %i(date_property).include?(action.type) %>
             <div class="form--field-container">
               <% date = action.values.first %>
               <%= angular_component_tag "opce-custom-date-action-admin",
                                         data: { "field-value": date.try(:iso8601) || date, "field-name": input_name } %>
+              <%= render_action_option_checkboxes(action) %>
             </div>
           <% elsif %i(string_property text_property).include?(action.type) %>
             <div class="form--field-container">
@@ -134,6 +136,7 @@
                                         action.values,
                                         container_class: "-slim",
                                         step: "any" %>
+              <%= render_action_option_checkboxes(action) %>
             </div>
           <% elsif %i(link_property).include?(action.type) %>
             <div class="form--field-container">
@@ -141,6 +144,7 @@
                                        action.values,
                                        container_class: "-slim",
                                        step: "any" %>
+              <%= render_action_option_checkboxes(action) %>
             </div>
           <% elsif action.type == :float_property %>
             <div class="form--field-container">
@@ -150,6 +154,7 @@
                                           min: action.minimum,
                                           max: action.maximum,
                                           step: "any" %>
+              <%= render_action_option_checkboxes(action) %>
             </div>
           <% elsif action.type == :integer_property %>
             <div class="form--field-container">
@@ -159,6 +164,7 @@
                                           min: action.minimum,
                                           max: action.maximum,
                                           step: 1 %>
+              <%= render_action_option_checkboxes(action) %>
             </div>
           <% end %>
           <%=

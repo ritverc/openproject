@@ -35,7 +35,7 @@ class CustomActions::Actions::DoneRatio < CustomActions::Actions::Base
     :done_ratio
   end
 
-  def apply(work_package)
+  def apply_value(work_package)
     work_package.done_ratio = values.first
   end
 
