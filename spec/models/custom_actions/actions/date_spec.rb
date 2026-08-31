@@ -61,6 +61,113 @@ RSpec.describe CustomActions::Actions::Date do
         expect(work_package.due_date)
           .to eql Date.today
       end
+
+      it "clears both start and finish date if no value is set" do
+        work_package.start_date = Date.today
+        work_package.due_date = Date.today
+
+        instance.values = [nil]
+
+        instance.apply(work_package)
+
+        expect(work_package.start_date)
+          .to be_nil
+        expect(work_package.due_date)
+          .to be_nil
+      end
+
+      context "with an interval" do
+        before do
+          week_with_saturday_and_sunday_as_weekend
+        end
+
+        it "starts on the current date and is due after the interval in working days" do
+          # 2024-01-01 is a Monday
+          travel_to(Date.new(2024, 1, 1)) do
+            instance.values = ["5d"]
+
+            instance.apply(work_package)
+
+            expect(work_package.start_date)
+              .to eql Date.new(2024, 1, 1)
+            expect(work_package.due_date)
+              .to eql Date.new(2024, 1, 8)
+          end
+        end
+
+        it "skips non-working days (two days after a Friday is the next Tuesday)" do
+          # 2024-01-05 is a Friday
+          travel_to(Date.new(2024, 1, 5)) do
+            instance.values = ["2d"]
+
+            instance.apply(work_package)
+
+            expect(work_package.start_date)
+              .to eql Date.new(2024, 1, 5)
+            expect(work_package.due_date)
+              .to eql Date.new(2024, 1, 9)
+          end
+        end
+
+        it "starts on the next working day if the current date is a non-working one" do
+          # 2024-01-06 is a Saturday
+          travel_to(Date.new(2024, 1, 6)) do
+            instance.values = ["2d"]
+
+            instance.apply(work_package)
+
+            expect(work_package.start_date)
+              .to eql Date.new(2024, 1, 8)
+            expect(work_package.due_date)
+              .to eql Date.new(2024, 1, 10)
+          end
+        end
+
+        it "adds weeks, months and years as calendar time" do
+          travel_to(Date.new(2024, 1, 1)) do
+            instance.values = ["1w"]
+            instance.apply(work_package)
+            expect(work_package.due_date).to eql Date.new(2024, 1, 8)
+
+            instance.values = ["1m"]
+            instance.apply(work_package)
+            expect(work_package.due_date).to eql Date.new(2024, 2, 1)
+
+            instance.values = ["1y"]
+            instance.apply(work_package)
+            expect(work_package.due_date).to eql Date.new(2025, 1, 1)
+          end
+        end
+
+        it "moves a calendar interval landing on a non-working day to the next working day" do
+          # 2024-01-03 + 1 month is Saturday 2024-02-03
+          travel_to(Date.new(2024, 1, 3)) do
+            instance.values = ["1m"]
+
+            instance.apply(work_package)
+
+            expect(work_package.due_date)
+              .to eql Date.new(2024, 2, 5)
+          end
+        end
+
+        context "when the work package ignores non-working days" do
+          let(:work_package) { build_stubbed(:work_package, ignore_non_working_days: true) }
+
+          it "counts days as calendar days" do
+            travel_to(Date.new(2024, 1, 5)) do
+              instance.values = ["2d"]
+
+              instance.apply(work_package)
+
+              expect(work_package.start_date)
+                .to eql Date.new(2024, 1, 5)
+              expect(work_package.due_date)
+                .to eql Date.new(2024, 1, 7)
+            end
+          end
+        end
+      end
     end
 
     describe "#multi_value?" do

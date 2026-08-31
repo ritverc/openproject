@@ -35,8 +35,11 @@ class CustomActions::Actions::Date < CustomActions::Actions::Base
     :date
   end
 
+  # Sets both dates. For an interval the work package starts on the day the
+  # action is applied and is due after the interval has passed, for all other
+  # values both dates are set to the resulting date.
   def apply(work_package)
-    work_package.start_date = date_to_apply
-    work_package.due_date = date_to_apply
+    work_package.start_date = start_date_to_apply(work_package)
+    work_package.due_date = date_to_apply(work_package)
   end
 end

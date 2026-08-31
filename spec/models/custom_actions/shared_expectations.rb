@@ -461,10 +461,16 @@ end
 RSpec.shared_examples_for "date values transformation" do
   describe "#values" do
     it "transforms the values to integers" do
-      instance.values = ["2015-03-29", Date.today, nil, (Date.today - 1.day).to_datetime, "bogus", "%CURRENT_DATE%"]
+      instance.values = ["2015-03-29", Date.today, nil, (Date.today - 1.day).to_datetime, "bogus",
+                         "%CURRENT_DATE%", "5d", "0d", "10000d"]
 
       expect(instance.values)
-        .to contain_exactly(Date.parse("2015-03-29"), Date.today, nil, Date.today - 1.day, "%CURRENT_DATE%")
+        .to contain_exactly(Date.parse("2015-03-29"),
+                            Date.today,
+                            nil,
+                            Date.today - 1.day,
+                            "%CURRENT_DATE%",
+                            "5d")
     end
   end
 end
