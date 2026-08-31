@@ -465,6 +465,34 @@ RSpec.describe "Custom actions", :js, with_ee: %i[custom_actions] do
     expect(page).to have_select("custom_action_actions_date", selected: "Current date")
   end
 
+  it "creates a date custom action with a working days interval" do
+    index_ca_page.visit!
+
+    new_ca_page = index_ca_page.new
+
+    new_ca_page.set_name("Set date after transition")
+    new_ca_page.set_description("Sets a date relative to the transition")
+    new_ca_page.add_action("Date", "after")
+
+    fill_in "custom_action_actions_date_interval_value", with: "5"
+    select "Weeks", from: "custom_action_actions_date_interval_unit"
+
+    new_ca_page.create
+
+    index_ca_page.expect_current_path
+    index_ca_page.expect_listed("Set date after transition")
+
+    date_action = CustomAction.last
+    expect(date_action.actions.length).to eq(1)
+    expect(date_action.actions.first.values).to eq(["5w"])
+
+    index_ca_page.edit("Set date after transition")
+
+    expect(page).to have_select("custom_action_actions_date", selected: "after")
+    expect(page).to have_field("custom_action_actions_date_interval_value", with: "5")
+    expect(page).to have_select("custom_action_actions_date_interval_unit", selected: "Weeks")
+  end
+
   it "editing a status custom action (Regression #61888)" do
     # create custom action 'Unassign'
     index_ca_page.visit!

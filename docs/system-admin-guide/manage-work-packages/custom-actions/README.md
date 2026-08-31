@@ -41,6 +41,27 @@ If a work package is then in the defined condition, the button will appear on to
 
 ![Custom action button in an OpenProject work package](openproject_system_guide_work_packages_custom_actions_button.png)
 
+## Date actions
+
+Date attributes (start date, finish date and date custom fields) offer three operators:
+
+| Operator | Result |
+| -------- | ------ |
+| **on** | The selected fixed date. |
+| **Current date** | The date the button is pressed. |
+| **after** | The date the button is pressed, shifted by the configured interval. |
+
+For the **after** operator, *days* are counted as working days, so a two day interval
+pressed on a Friday results in the following Tuesday. *Weeks*, *months* and *years* are
+calendar based; if the resulting date falls on a non-working day, it moves to the next
+working day. Work packages that are set to ignore non-working days always use plain
+calendar arithmetic.
+
+The **Date** action sets the start and the finish date at once. Combined with the
+**after** operator, the work package starts on the day the button is pressed and is due
+after the interval has passed. To shift only one of the two dates, use the **Start date**
+or **Finish date** action instead.
+
 ## Update, sort or delete custom actions
 
 1. Click on the name of a custom action or on the pencil icon in order to update the attributes.
