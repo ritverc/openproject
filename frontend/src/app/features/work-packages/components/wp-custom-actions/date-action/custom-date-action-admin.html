@@ -22,6 +22,31 @@
         classes="form--text-field" />
     </span>
   }
+  @if (selectedOperatorKey === intervalKey) {
+    <span class="form--text-field-container -slim">
+      <input type="number"
+        class="form--text-field"
+        [attr.id]="fieldId + '_interval_value'"
+        [value]="intervalValue"
+        [attr.min]="minIntervalValue"
+        [attr.max]="maxIntervalValue"
+        (input)="updateIntervalValue($event.target.value)" />
+    </span>
+    <span class="form--select-container -slim">
+      <select class="form--select"
+        [attr.id]="fieldId + '_interval_unit'"
+        [(ngModel)]="intervalUnit"
+        (change)="updateIntervalUnit($event.target.value)">
+        @for (unit of intervalUnits; track unit.key) {
+          <option
+            [value]="unit.key"
+            [textContent]="unit.label"
+            >
+          </option>
+        }
+      </select>
+    </span>
+  }
   <input type="hidden"
     [name]="fieldName"
     [value]="fieldValue"/>

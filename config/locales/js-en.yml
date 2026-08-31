@@ -220,6 +220,12 @@ en:
       date:
         current_date: "Current date"
         specific: "on"
+        interval: "after"
+        units:
+          days: "Days"
+          weeks: "Weeks"
+          months: "Months"
+          years: "Years"
 
     description_available_columns: "Available Columns"
     description_current_position: "You are here: "
