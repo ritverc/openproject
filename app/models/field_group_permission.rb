@@ -32,7 +32,8 @@
 #
 # For a given work package type, field group and status it describes whether the
 # group is +visible+ and whether it is +read_only+ for one of the work package
-# roles the current user may hold (author / assignee / responsible).
+# roles the current user may hold (author / assignee / responsible) or the
+# catch-all +other+ role.
 #
 # A missing record is equivalent to the least restrictive default
 # (+visible: true, read_only: false+), so the feature is fully backwards
@@ -40,7 +41,11 @@
 class FieldGroupPermission < ApplicationRecord
   # The work package roles a user can hold relative to a concrete work package.
   # These are attributes of the work package itself, not project membership roles.
-  ROLES = %w[author assignee responsible].freeze
+  # +other+ is a sentinel applied to a user who holds none of the roles above so
+  # that non-authors/assignees/responsibles can be restricted instead of always
+  # falling back to full access.
+  OTHER_ROLE = "other"
+  ROLES = %w[author assignee responsible other].freeze
 
   # Reserved key of the virtual "header" meta group. The work package header
   # fields (subject, type, status) do not belong to any regular attribute group,
@@ -60,6 +65,10 @@ class FieldGroupPermission < ApplicationRecord
             uniqueness: { scope: %i[type_id status_id role] }
 
   # Returns the subset of ROLES the +user+ holds for the given +work_package+.
+  #
+  # A user who holds none of the work package roles is placed in the +other+
+  # catch-all bucket so that their access can be restricted independently of the
+  # author/assignee/responsible rules.
   def self.matched_roles(work_package, user)
     return [] if user.nil? || user.anonymous?
 
@@ -67,7 +76,7 @@ class FieldGroupPermission < ApplicationRecord
     roles << "author" if work_package.author_id == user.id
     roles << "assignee" if principal_matches?(work_package.assigned_to, user)
     roles << "responsible" if principal_matches?(work_package.responsible, user)
-    roles
+    roles.any? ? roles : [OTHER_ROLE]
   end
 
   # Whether the +principal+ (User or Group) resolves to the given +user+.

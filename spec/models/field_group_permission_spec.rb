@@ -64,7 +64,7 @@ RSpec.describe FieldGroupPermission do
       expect(described_class.matched_roles(work_package, author)).to eq(%w[author])
       expect(described_class.matched_roles(work_package, assignee)).to eq(%w[assignee])
       expect(described_class.matched_roles(work_package, responsible)).to eq(%w[responsible])
-      expect(described_class.matched_roles(work_package, stranger)).to eq([])
+      expect(described_class.matched_roles(work_package, stranger)).to eq([FieldGroupPermission::OTHER_ROLE])
     end
 
     it "detects group membership for assignee and responsible" do
@@ -76,10 +76,28 @@ RSpec.describe FieldGroupPermission do
   end
 
   describe ".effective_for" do
-    it "returns an empty hash when the user holds no role" do
+    it "returns an empty hash when no 'other' rule restricts the group" do
       create(:field_group_permission, type:, status:, field_group: "people", role: "author", visible: false)
 
       expect(described_class.effective_for(work_package, stranger)).to eq({})
+    end
+
+    it "applies a rule configured for the 'other' catch-all role" do
+      create(:field_group_permission, type:, status:, field_group: "people", role: "other", visible: false)
+
+      expect(described_class.effective_for(work_package, stranger))
+        .to eq("people" => { visible: false, read_only: true })
+      expect(described_class.hidden_group_keys(work_package, stranger)).to eq(%w[people])
+      expect(described_class.read_only_group_keys(work_package, stranger)).to eq([])
+    end
+
+    it "keeps the group writable when only an 'other' read-only rule exists" do
+      create(:field_group_permission, type:, status:, field_group: "people", role: "other",
+                                      visible: true, read_only: true)
+
+      expect(described_class.effective_for(work_package, stranger))
+        .to eq("people" => { visible: true, read_only: true })
+      expect(described_class.read_only_group_keys(work_package, stranger)).to eq(%w[people])
     end
 
     it "returns the default (nothing) when no record exists for the held role" do
