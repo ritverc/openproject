@@ -99,5 +99,25 @@ RSpec.describe "Field group permissions administration",
                                                  field_group:, role: "author")
       expect(author_rule).to have_attributes(visible: false, read_only: false)
     end
+
+    it "persists a rule for the 'other' catch-all role" do
+      patch field_group_permission_path(type),
+            headers: { "Accept" => "text/vnd.turbo-stream.html" },
+            params: {
+              field_group:,
+              hidden: { status.id.to_s => { "other" => "1" } },
+              read_only: {}
+            }
+
+      expect(response).to have_http_status(:ok)
+
+      other_rule = FieldGroupPermission.find_by(type_id: type.id, status_id: status.id,
+                                                field_group:, role: "other")
+      expect(other_rule).to have_attributes(visible: false, read_only: false)
+
+      # the relationship roles keep the permissive default and must not be stored
+      expect(FieldGroupPermission.exists?(type_id: type.id, status_id: status.id,
+                                          field_group:, role: "author")).to be(false)
+    end
   end
 end

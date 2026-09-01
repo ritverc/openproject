@@ -96,4 +96,20 @@ RSpec.describe API::V3::WorkPackages::WorkPackageRepresenter, "restrictedFieldGr
       expect(json).not_to have_json_path("restrictedFieldGroups")
     end
   end
+
+  context "with a hidden group for the 'other' catch-all role" do
+    let(:work_package) do
+      create(:work_package, project:, type:, status:, author: create(:user))
+    end
+
+    before do
+      create(:field_group_permission,
+             type:, status:, field_group: "people", role: "other", visible: false)
+    end
+
+    it "exposes the hidden group to a user who holds no work package role" do
+      expect(JSON.parse(json).dig("restrictedFieldGroups", "hidden"))
+        .to include("assignee", "responsible")
+    end
+  end
 end
