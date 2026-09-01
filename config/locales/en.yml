@@ -1584,6 +1584,10 @@ en:
     header_meta_group_caption: "The work package header fields (subject, type, status) are not part of a regular attribute group, but their access can still be configured here."
     hide: "Hide"
     read_only: "Read-only"
+    other_role: "Other (not author, assignee or responsible)"
+    deny_all_others: "Deny access to all others"
+    allow_all_others: "Allow access to all others"
+    other_role_caption: "These settings apply to users who are neither author, assignee nor responsible for the work package."
 
   workflows:
     copies:

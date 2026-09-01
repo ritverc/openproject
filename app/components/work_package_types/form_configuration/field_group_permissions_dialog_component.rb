@@ -54,6 +54,9 @@ module WorkPackageTypes
 
       def dialog_id = DIALOG_ID
 
+      # The "other" catch-all role label, shown as the last matrix column.
+      def other_role_label = t("field_group_permissions.other_role")
+
       def dialog_title
         I18n.t("field_group_permissions.dialog_title", name: @field_group.translated_key)
       end
@@ -64,11 +67,14 @@ module WorkPackageTypes
 
       def statuses = @statuses ||= Status.order(:position)
 
-      # [key, label] pairs of the work package roles shown as columns.
+      # [key, label] pairs of the roles shown as matrix columns, including the
+      # "other" catch-all that applies to users holding none of the work package
+      # roles.
       def roles
         { "author" => WorkPackage.human_attribute_name(:author),
           "assignee" => WorkPackage.human_attribute_name(:assigned_to),
-          "responsible" => WorkPackage.human_attribute_name(:responsible) }
+          "responsible" => WorkPackage.human_attribute_name(:responsible),
+          FieldGroupPermission::OTHER_ROLE => other_role_label }
       end
 
       def hidden?(status, role)
@@ -77,6 +83,14 @@ module WorkPackageTypes
 
       def read_only?(status, role)
         (permission = @permissions[[status.id, role]]) && permission.read_only?
+      end
+
+      # Data hash for the quick "other" action buttons. The Stimulus controller
+      # applies the setting (deny/allow) to every status row of the "other"
+      # column.
+      def other_action_data(action_value)
+        { action: "field-group-permissions-other#apply",
+          "field-group-permissions-other-action-value": action_value }
       end
     end
   end

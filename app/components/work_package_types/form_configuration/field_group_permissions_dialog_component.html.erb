@@ -34,6 +34,20 @@ See COPYRIGHT and LICENSE files for more details.
     <%= render(Primer::Alpha::Dialog::Body.new) do %>
       <p><%= t("field_group_permissions.matrix_caption") %></p>
 
+      <div class="field-group-permissions--other-controls" data-controller="field-group-permissions-other">
+        <p class="field-group-permissions--other-caption">
+          <%= t("field_group_permissions.other_role_caption") %>
+        </p>
+        <div class="field-group-permissions--other-actions">
+          <%= render(Primer::Beta::Button.new(scheme: :danger, data: other_action_data("deny"))) do %>
+            <%= t("field_group_permissions.deny_all_others") %>
+          <% end %>
+          <%= render(Primer::Beta::Button.new(scheme: :primary, data: other_action_data("allow"))) do %>
+            <%= t("field_group_permissions.allow_all_others") %>
+          <% end %>
+        </div>
+      </div>
+
       <div class="generic-table--container">
         <div class="generic-table--results-container">
           <table class="generic-table">
