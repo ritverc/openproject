@@ -947,8 +947,6 @@ Rails.application.routes.draw do
       end
     end
 
-  resources :field_group_permissions, only: %i[edit update], param: :type_id
-
     resources :departments,
               only: %i[index show edit update destroy] do
       member do
@@ -974,6 +972,8 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  resources :field_group_permissions, only: %i[edit update], param: :type_id
 
   namespace :work_packages do
     get "menu" => "menus#show"
